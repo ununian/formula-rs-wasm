@@ -1,0 +1,471 @@
+[
+  {
+    "issueType": 1848766,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848766,
+    "id": 16055610,
+    "name": "关联总个数",
+    "expression": "COUNT(relationship;)",
+    "type": "percentage_number"
+  },
+  {
+    "issueType": 1848766,
+    "id": 6879867,
+    "name": "多久没更新",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1848766,
+    "id": 18315187,
+    "name": "  COUNT(关联-个数;工作work",
+    "expression": "COUNT(relationship;issueTypeId=1848788)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848766,
+    "id": 18315497,
+    "name": "事务个数",
+    "expression": "COUNT(relationship;issueTypeId=1848788)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848766,
+    "id": 16055417,
+    "name": "子任务预估工时",
+    "expression": "SUM(subtask.estimateLabour;)",
+    "type": "percentage_number"
+  },
+  {
+    "issueType": 1848766,
+    "id": 16193558,
+    "name": "关联个数（故事）",
+    "expression": "COUNT(relationship;issueTypeId=1848766)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848766,
+    "id": 16203784,
+    "name": "子任务个数",
+    "expression": "COUNT(subtask;)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848766,
+    "id": 19709746,
+    "name": "多久未更新",
+    "expression": "GET_NOW-GET_CREATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1848766,
+    "id": 2889762,
+    "name": "现在 - 更新时间",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "date"
+  },
+  {
+    "issueType": 1848788,
+    "id": 16046395,
+    "name": "已完成子任务个数（组织模板）",
+    "expression": "COUNT(subtask;status=4)",
+    "type": "percentage_bar"
+  },
+  {
+    "issueType": 1848788,
+    "id": 18315187,
+    "name": "  COUNT(关联-个数;工作work",
+    "expression": "COUNT(relationship;issueTypeId=1848788)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848788,
+    "id": 16193558,
+    "name": "关联个数（故事）",
+    "expression": "COUNT(relationship;issueTypeId=1848766)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848788,
+    "id": 16055724,
+    "name": "子任务点数-未完成",
+    "expression": "SUM(subtask.estimatePoint;status=2)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848924,
+    "id": 8176865,
+    "name": "ghh",
+    "expression": "GET_TODAY-GET_CREATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1848924,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848924,
+    "id": 18315517,
+    "name": "111111",
+    "expression": "COUNT(relationship;issueTypeId=1848946)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848924,
+    "id": 18305612,
+    "name": "11",
+    "expression": "COUNT(relationship;issueTypeId=3099719)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848924,
+    "id": 18769019,
+    "name": "多久未更新",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848924,
+    "id": 21865869,
+    "name": "百分比数值",
+    "expression": "COUNT(relationship;)",
+    "type": "percentage_number"
+  },
+  {
+    "issueType": 1848924,
+    "id": 21860732,
+    "name": "百分比进度条",
+    "expression": "COUNT(relationship;)",
+    "type": "percentage_bar"
+  },
+  {
+    "issueType": 1848924,
+    "id": 21859447,
+    "name": "今天日期",
+    "expression": "GET_TODAY",
+    "type": "date"
+  },
+  {
+    "issueType": 1848924,
+    "id": 21859385,
+    "name": "日期时间",
+    "expression": "GET_NOW",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1848924,
+    "id": 21864035,
+    "name": "小数相加",
+    "expression": "customfield_21859018+customfield_21864029",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848924,
+    "id": 21141032,
+    "name": "abcdef",
+    "expression": "customfield_21131311+customfield_21141027",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848924,
+    "id": 19215218,
+    "name": "多久没更新",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1848924,
+    "id": 16073362,
+    "name": "关联个数（子级是-组织）",
+    "expression": "COUNT(relationship;relationship=CHILD)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848924,
+    "id": 19743347,
+    "name": "多久未更新-陈俊明",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1848924,
+    "id": 19188058,
+    "name": "子任务点数完成比",
+    "expression": "SUM(subtask.estimatePoint;status=4)/SUM(subtask.estimatePoint;)",
+    "type": "percentage_bar"
+  },
+  {
+    "issueType": 1848924,
+    "id": 19187991,
+    "name": "a+b",
+    "expression": "customfield_19187973+customfield_19215460",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848924,
+    "id": 19187778,
+    "name": "多少秒没更新",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848946,
+    "id": 18305612,
+    "name": "11",
+    "expression": "COUNT(relationship;issueTypeId=3099719)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848946,
+    "id": 16193224,
+    "name": "点数的平方（组织）",
+    "expression": "estimatePoint*estimatePoint",
+    "type": "decimal"
+  },
+  {
+    "issueType": 1848946,
+    "id": 18769019,
+    "name": "多久未更新",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "integer"
+  },
+  {
+    "issueType": 1848946,
+    "id": 19215218,
+    "name": "多久没更新",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 1859624,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 1859646,
+    "id": 16073362,
+    "name": "关联个数（子级是-组织）",
+    "expression": "COUNT(relationship;relationship=CHILD)",
+    "type": "integer"
+  },
+  {
+    "issueType": 1954782,
+    "id": 2889762,
+    "name": "现在 - 更新时间",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "date"
+  },
+  {
+    "issueType": 2502535,
+    "id": 16193224,
+    "name": "点数的平方（组织）",
+    "expression": "estimatePoint*estimatePoint",
+    "type": "decimal"
+  },
+  {
+    "issueType": 4300453,
+    "id": 19065947,
+    "name": "剩余工时-子任务",
+    "expression": "SUM(subtask.remainingLabour;)",
+    "type": "integer"
+  },
+  {
+    "issueType": 6435367,
+    "id": 19104773,
+    "name": "公式-组织",
+    "expression": "COUNT(subtask;)",
+    "type": "percentage_bar"
+  },
+  {
+    "issueType": 13570229,
+    "id": 19018296,
+    "name": "剩余工时-公式",
+    "expression": "SUM(subtask.remainingLabour;)",
+    "type": "integer"
+  },
+  {
+    "issueType": 18280851,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 18280851,
+    "id": 18290025,
+    "name": "  SUM(子任务childre-预估工",
+    "expression": "SUM(subtask.estimateLabour;)",
+    "type": "integer"
+  },
+  {
+    "issueType": 18290894,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 19110567,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 19110567,
+    "id": 18315187,
+    "name": "  COUNT(关联-个数;工作work",
+    "expression": "COUNT(relationship;issueTypeId=1848788)",
+    "type": "integer"
+  },
+  {
+    "issueType": 19123660,
+    "id": 19123403,
+    "name": "剩余工时1",
+    "expression": "SUM(subtask.remainingLabour;)",
+    "type": "integer"
+  },
+  {
+    "issueType": 19131144,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 19220761,
+    "id": 18305612,
+    "name": "11",
+    "expression": "COUNT(relationship;issueTypeId=3099719)",
+    "type": "integer"
+  },
+  {
+    "issueType": 19225240,
+    "id": 18315187,
+    "name": "  COUNT(关联-个数;工作work",
+    "expression": "COUNT(relationship;issueTypeId=1848788)",
+    "type": "integer"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19765876,
+    "name": "截止时间-开始时间",
+    "expression": "dueDate-startDate",
+    "type": "datetime"
+  },
+  {
+    "issueType": 19604607,
+    "id": 29055342,
+    "name": "整数1*10",
+    "expression": "customfield_29041510*10",
+    "type": "integer"
+  },
+  {
+    "issueType": 19604607,
+    "id": 2018041,
+    "name": "666",
+    "expression": "customfield_2018036",
+    "type": "integer"
+  },
+  {
+    "issueType": 19604607,
+    "id": 21055847,
+    "name": "  COUNT(关联-个数;关联=\"普通",
+    "expression": "COUNT(relationship;relationship=RELATES_TO)",
+    "type": "integer"
+  },
+  {
+    "issueType": 19604607,
+    "id": 20027395,
+    "name": "今天-创建时间",
+    "expression": "GET_TODAY-GET_CREATE_TIME",
+    "type": "date"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19963366,
+    "name": "现在-更新时间",
+    "expression": "GET_NOW-GET_UPDATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19958388,
+    "name": "今天-更新时间",
+    "expression": "GET_TODAY-GET_UPDATE_TIME",
+    "type": "datetime"
+  },
+  {
+    "issueType": 19604607,
+    "id": 16173284,
+    "name": "已用工时（子任务-组织）",
+    "expression": "SUM(subtask.actualLabour;)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19693517,
+    "name": "已用（子）",
+    "expression": "SUM(subtask.actualLabour;)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19693539,
+    "name": "预估（子）",
+    "expression": "SUM(subtask.estimateLabour;)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19693524,
+    "name": "剩余（子）",
+    "expression": "SUM(subtask.remainingLabour;)",
+    "type": "decimal"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19683459,
+    "name": "点数（子）",
+    "expression": "SUM(subtask.estimatePoint;)",
+    "type": "percentage_number"
+  },
+  {
+    "issueType": 19604607,
+    "id": 16193224,
+    "name": "点数的平方（组织）",
+    "expression": "estimatePoint*estimatePoint",
+    "type": "decimal"
+  },
+  {
+    "issueType": 19604607,
+    "id": 19104773,
+    "name": "公式-组织",
+    "expression": "COUNT(subtask;)",
+    "type": "percentage_bar"
+  },
+  {
+    "issueType": 19604607,
+    "id": 16073362,
+    "name": "关联个数（子级是-组织）",
+    "expression": "COUNT(relationship;relationship=CHILD)",
+    "type": "integer"
+  },
+  {
+    "issueType": 19605102,
+    "id": 21055847,
+    "name": "  COUNT(关联-个数;关联=\"普通",
+    "expression": "COUNT(relationship;relationship=RELATES_TO)",
+    "type": "integer"
+  }
+]

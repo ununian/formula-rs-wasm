@@ -1,3 +1,7 @@
+extern crate alloc;
+use alloc::format;
+use alloc::string::{String, ToString};
+
 #[cfg(test)]
 mod parse_calc_tests {
     use formula_rs_wasm::formula::{self, *};
@@ -270,6 +274,7 @@ mod number_calc_tests {
 #[cfg(test)]
 mod pass_value_test {
 
+    use alloc::string::ToString;
     use formula_rs_wasm::formula::{self, *};
 
     use serde_json::json;
@@ -302,8 +307,8 @@ mod function_test {
 
     use formula_rs_wasm::formula::{self, *};
 
+    use alloc::vec;
     use serde_json::{json, Value};
-
     fn get_data() -> Value {
         json!({
             "a": 3,
@@ -359,9 +364,8 @@ mod function_test {
     fn func_run_with_exp_mul() {
         let exp = formula::parse("SUM(subtask.estimatePoint;status=2) * a").unwrap();
         let sum = formula::eval(exp, &get_data());
-        assert_eq!(sum, ExpValue::Number(6.0));
+        assert_eq!(sum, ExpValue::Number(9.0));
     }
-
 
     #[test]
     fn func_run_with_field() {

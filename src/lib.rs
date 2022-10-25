@@ -1,3 +1,9 @@
+#![no_std]
+
+extern crate alloc;
+use alloc::string::{String, ToString};
+use alloc::format;
+
 #[macro_use]
 extern crate pest_derive;
 

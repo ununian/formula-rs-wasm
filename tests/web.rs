@@ -1,12 +1,23 @@
 //! Test suite for the Web and headless browsers.
 
 #![cfg(target_arch = "wasm32")]
+#![no_std]
 
 extern crate wasm_bindgen_test;
 use formula_rs_wasm::{formula::ExpValue, greet};
 use wasm_bindgen_test::*;
 
+extern crate alloc;
+
+use alloc::{
+  string::{String, ToString},
+  vec,
+  vec::Vec,
+};
+
+
 wasm_bindgen_test_configure!(run_in_browser);
+
 
 #[wasm_bindgen_test]
 fn greet_test() {

@@ -1,3 +1,8 @@
+use alloc::{
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use pest::iterators::{Pair, Pairs};
 
 use crate::formula::{calc::Rule, Function, Identifier};

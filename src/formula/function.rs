@@ -1,5 +1,10 @@
-use std::str::FromStr;
+use core::str::FromStr;
 
+use alloc::{
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use pest::iterators::Pair;
 use serde_json::Value;
 

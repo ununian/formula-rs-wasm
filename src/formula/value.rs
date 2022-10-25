@@ -1,4 +1,4 @@
-use std::ops;
+use alloc::{string::String, vec::Vec};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ExpValue {
@@ -9,9 +9,8 @@ pub enum ExpValue {
     Array(Vec<ExpValue>),
 }
 
-impl ops::Add<ExpValue> for ExpValue {
-    type Output = ExpValue;
-    fn add(self, _rhs: ExpValue) -> ExpValue {
+impl ExpValue {
+    pub fn add(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
                 return ExpValue::Number(a + b);
@@ -19,11 +18,8 @@ impl ops::Add<ExpValue> for ExpValue {
         }
         return ExpValue::Error;
     }
-}
 
-impl ops::Sub<ExpValue> for ExpValue {
-    type Output = ExpValue;
-    fn sub(self, _rhs: ExpValue) -> ExpValue {
+    pub fn sub(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
                 return ExpValue::Number(a - b);
@@ -31,11 +27,8 @@ impl ops::Sub<ExpValue> for ExpValue {
         }
         return ExpValue::Error;
     }
-}
 
-impl ops::Mul<ExpValue> for ExpValue {
-    type Output = ExpValue;
-    fn mul(self, _rhs: ExpValue) -> ExpValue {
+    pub fn mul(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
                 return ExpValue::Number(a * b);
@@ -43,11 +36,8 @@ impl ops::Mul<ExpValue> for ExpValue {
         }
         return ExpValue::Error;
     }
-}
 
-impl ops::Div<ExpValue> for ExpValue {
-    type Output = ExpValue;
-    fn div(self, _rhs: ExpValue) -> ExpValue {
+    pub fn div(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
                 return ExpValue::Number(a / b);
@@ -55,9 +45,7 @@ impl ops::Div<ExpValue> for ExpValue {
         }
         return ExpValue::Error;
     }
-}
 
-impl ExpValue {
     pub fn powf(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
@@ -66,11 +54,8 @@ impl ExpValue {
         }
         return ExpValue::Error;
     }
-}
 
-impl ops::Rem<ExpValue> for ExpValue {
-    type Output = ExpValue;
-    fn rem(self, _rhs: ExpValue) -> ExpValue {
+    pub fn rem(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
                 return ExpValue::Number(a % b);

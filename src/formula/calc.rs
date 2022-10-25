@@ -1,5 +1,9 @@
 extern crate pest;
 
+use alloc::{
+    string::{String, ToString},
+    vec,
+};
 use pest::{
     error::Error,
     iterators::{Pair, Pairs},
@@ -78,12 +82,12 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
             _ => ExpValue::Number(f64::NAN),
         },
         |lhs, op, rhs| match op.as_rule() {
-            Rule::add => lhs + rhs,
-            Rule::subtract => lhs - rhs,
-            Rule::multiply => lhs * rhs,
-            Rule::divide => lhs / rhs,
+            Rule::add => lhs.add(rhs),
+            Rule::subtract => lhs.sub(rhs),
+            Rule::multiply => lhs.mul(rhs),
+            Rule::divide => lhs.div(rhs),
             Rule::power => lhs.powf(rhs),
-            Rule::modulus => (lhs % rhs),
+            Rule::modulus => (lhs.rem(rhs)),
 
             _ => ExpValue::Error,
         },

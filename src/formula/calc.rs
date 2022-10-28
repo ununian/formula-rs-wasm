@@ -79,7 +79,7 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
                 .unwrap()
                 .run(table)
                 .unwrap_or(ExpValue::Error),
-            _ => ExpValue::Number(f64::NAN),
+            _ => ExpValue::Error,
         },
         |lhs, op, rhs| match op.as_rule() {
             Rule::add => lhs.add(rhs),

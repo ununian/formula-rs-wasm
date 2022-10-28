@@ -1,13 +1,10 @@
 extern crate pest;
 
-use alloc::{
-    string::{String, ToString},
-    vec,
-};
+use alloc::string::{String, ToString};
 use pest::{
     error::Error,
     iterators::{Pair, Pairs},
-    prec_climber::{Assoc, Operator, PrecClimber},
+    pratt_parser::{Assoc, Op, PrattParser},
     Parser,
 };
 
@@ -16,8 +13,6 @@ use pest::{
 pub struct Calculator;
 
 use serde_json::Value;
-use Assoc::*;
-use Rule::*;
 
 use crate::formula::{ExpValue, Function};
 
@@ -55,16 +50,18 @@ impl Identifier {
 }
 
 pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
-    let operators = PrecClimber::new(vec![
-        Operator::new(add, Left) | Operator::new(subtract, Left),
-        Operator::new(multiply, Left) | Operator::new(divide, Left),
-        Operator::new(modulus, Left),
-        Operator::new(power, Right),
-    ]);
+    use Assoc::*;
+    use Rule::*;
 
-    operators.climb(
-        expression,
-        |pair| match pair.as_rule() {
+    let pratt = PrattParser::new()
+        .op(Op::infix(add, Left) | Op::infix(subtract, Left))
+        .op(Op::infix(multiply, Left) | Op::infix(divide, Left))
+        .op(Op::infix(modulus, Left))
+        .op(Op::infix(power, Right))
+        .op(Op::postfix(EOI));
+
+    pratt
+        .map_primary(|pair| match pair.as_rule() {
             Rule::num => ExpValue::Number(pair.as_str().trim().parse::<f64>().unwrap()),
             Rule::expr => eval(pair.into_inner(), &table),
             Rule::ident => {
@@ -72,24 +69,26 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
                 let id = Identifier {
                     name: name.to_string(),
                 };
-
                 id.get_value(&table).unwrap_or(ExpValue::Error)
             }
             Rule::function => Function::from(pair)
                 .unwrap()
                 .run(table)
                 .unwrap_or(ExpValue::Error),
-            _ => ExpValue::Error,
-        },
-        |lhs, op, rhs| match op.as_rule() {
+            rule => unreachable!("Expr::parse expected atom, found {:?}", rule),
+        })
+        .map_infix(|lhs, op, rhs| match op.as_rule() {
             Rule::add => lhs.add(rhs),
             Rule::subtract => lhs.sub(rhs),
             Rule::multiply => lhs.mul(rhs),
             Rule::divide => lhs.div(rhs),
             Rule::power => lhs.powf(rhs),
-            Rule::modulus => (lhs.rem(rhs)),
-
-            _ => ExpValue::Error,
-        },
-    )
+            Rule::modulus => lhs.rem(rhs),
+            rule => unreachable!("Expr::parse expected infix operation, found {:?}", rule),
+        })
+        .map_postfix(|lhs, op| match op.as_rule() {
+            Rule::EOI => lhs,
+            _ => unreachable!(),
+        })
+        .parse(expression.clone())
 }

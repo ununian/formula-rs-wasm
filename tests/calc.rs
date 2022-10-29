@@ -361,6 +361,13 @@ mod number_calc_tests {
         let result = formula::eval(exp, &create_num_table());
         assert_eq!(result, ExpValue::Number(-120.0));
     }
+
+    #[test]
+    fn calc_factorial_add_5() {
+        let exp = formula::parse("5! + 5!").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(240.0));
+    }
 }
 
 #[cfg(test)]

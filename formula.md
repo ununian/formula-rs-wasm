@@ -75,6 +75,7 @@ createTime + 1.day + 2.hour - 3.minute
 
 // 上面借鉴自 swift 的语法，我不太确定上面的好不好实现，下面这种简单点
 
+createTime + day(1) + hour(2) + minute(3)
 addDay(createTime, 1)
 addHour(createTime, 2)
 

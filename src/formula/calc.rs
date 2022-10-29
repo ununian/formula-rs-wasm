@@ -1,7 +1,5 @@
 extern crate pest;
 
-use core::str::FromStr;
-
 use alloc::string::{String, ToString};
 use num::{FromPrimitive, Rational64, Zero};
 use pest::{

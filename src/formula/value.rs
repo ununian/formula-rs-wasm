@@ -1,9 +1,12 @@
-use core::str::FromStr;
+use core::fmt::Display;
 
-use alloc::{string::String, vec::Vec};
+use alloc::{
+    string::{String},
+    vec::Vec,
+};
 use num::{FromPrimitive, Rational64, ToPrimitive};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone,Debug, PartialEq)]
 pub enum ExpValue {
     Error,
     Bool(bool),
@@ -89,5 +92,34 @@ impl ExpValue {
             }
         }
         return ExpValue::Error;
+    }
+}
+
+impl Display for ExpValue {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ExpValue::Error => write!(f, "Error"),
+            ExpValue::Bool(b) => write!(f, "{}", b),
+            ExpValue::Number(n) => {
+                if n.is_integer() {
+                    write!(f, "{}", n.to_integer())
+                } else if let Some(n) = n.to_f64() {
+                    write!(f, "{}", n)
+                } else {
+                    write!(f, "Error")
+                }
+            }
+            ExpValue::String(s) => write!(f, "{}", s),
+            ExpValue::Array(a) => {
+                write!(f, "[")?;
+                for (i, v) in a.iter().enumerate() {
+                    write!(f, "{}", v)?;
+                    if i != a.len() - 1 {
+                        write!(f, ", ")?;
+                    }
+                }
+                write!(f, "]")
+            }
+        }
     }
 }

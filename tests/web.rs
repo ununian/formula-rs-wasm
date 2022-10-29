@@ -4,20 +4,14 @@
 #![no_std]
 
 extern crate wasm_bindgen_test;
-use formula_rs_wasm::{formula::ExpValue, greet};
+use formula_rs_wasm::greet;
 use wasm_bindgen_test::*;
 
 extern crate alloc;
 
-use alloc::{
-  string::{String, ToString},
-  vec,
-  vec::Vec,
-};
-
+use alloc::string::ToString;
 
 wasm_bindgen_test_configure!(run_in_browser);
-
 
 #[wasm_bindgen_test]
 fn greet_test() {
@@ -52,6 +46,6 @@ fn greet_test() {
         ]
       }
       "#;
-    let r = greet("estimatePoint ^ COUNT(subtask.estimatePoint;status=3) + SUM(subtask.estimatePoint;status=2)".to_string(), data.to_string());
-    assert_eq!(r, "Number(103.0)");
+    let r = greet("estimatePoint ^ COUNT(subtask.estimatePoint;status=3) + SUM(subtask.estimatePoint;status=2) + 0.1 + 0.2".to_string(), data.to_string());
+    assert_eq!(r, "103.3");
 }

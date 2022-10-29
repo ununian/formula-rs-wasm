@@ -1,6 +1,4 @@
 extern crate alloc;
-use alloc::format;
-use alloc::string::{String, ToString};
 
 #[cfg(test)]
 mod parse_calc_tests {

@@ -1,8 +1,8 @@
 #![no_std]
 
 extern crate alloc;
-use alloc::string::{String, ToString};
 use alloc::format;
+use alloc::string::String;
 
 #[macro_use]
 extern crate pest_derive;
@@ -23,5 +23,5 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub fn greet(expr: String, data: String) -> String {
     let formula = formula::parse(&expr).unwrap();
     let table: Value = serde_json::from_str(&data).unwrap();
-    return format!("{:?}", formula::eval(formula, &table)).to_string();
+    return format!("{}", formula::eval(formula, &table));
 }

@@ -1,10 +1,11 @@
-use core::str::FromStr;
+use core::{convert::TryFrom, str::FromStr};
 
 use alloc::{
     string::{String, ToString},
     vec,
     vec::Vec,
 };
+use num::{FromPrimitive, Rational64, Zero};
 use pest::iterators::Pair;
 use serde_json::Value;
 
@@ -218,10 +219,11 @@ impl Function {
         match self.name.to_lowercase().as_str() {
             "sum" => match data {
                 Some(data) => {
-                    let mut sum = 0.0;
+                    let mut sum = Rational64::zero();
                     data.iter().for_each(|val| {
                         if val.is_number() {
-                            sum += val.as_f64().unwrap_or(0.0);
+                            sum += Rational64::from_f64(val.as_f64().unwrap_or(0.0))
+                                .unwrap_or(Rational64::zero())
                         }
                     });
                     Some(ExpValue::Number(sum))
@@ -230,7 +232,9 @@ impl Function {
             },
 
             "count" => match data {
-                Some(data) => Some(ExpValue::Number(data.len() as f64)),
+                Some(data) => Some(ExpValue::Number(
+                    Rational64::from_usize(data.len()).unwrap_or(Rational64::zero()),
+                )),
                 None => None,
             },
             _ => None,

@@ -1,6 +1,9 @@
 extern crate pest;
 
+use core::str::FromStr;
+
 use alloc::string::{String, ToString};
+use num::{FromPrimitive, Rational64, Zero};
 use pest::{
     error::Error,
     iterators::{Pair, Pairs},
@@ -32,7 +35,17 @@ impl Identifier {
             if val.is_string() {
                 return Some(ExpValue::String(val.as_str()?.to_string()));
             } else if val.is_number() {
-                return Some(ExpValue::Number(val.as_f64()?));
+                // return Some(ExpValue::Number(
+                //     Rational64::from_f64(val.as_f64().unwrap_or(default)).unwrap_or(Rational64::zero()),
+                // ));
+                match val.as_f64() {
+                    Some(f) => {
+                        return Some(ExpValue::Number(
+                            Rational64::from_f64(f).unwrap_or(Rational64::zero()),
+                        ))
+                    }
+                    None => return Some(ExpValue::Error),
+                }
             }
             return Some(ExpValue::Error);
         }
@@ -64,7 +77,7 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
 
     pratt
         .map_primary(|pair| match pair.as_rule() {
-            Rule::num => ExpValue::Number(pair.as_str().trim().parse::<f64>().unwrap()),
+            Rule::num => ExpValue::to_number(pair.as_str()),
             Rule::expr => eval(pair.into_inner(), &table),
             Rule::ident => {
                 let name = pair.as_str().trim();
@@ -90,12 +103,12 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
         })
         .map_postfix(|lhs, op| match op.as_rule() {
             Rule::EOI => lhs,
-            Rule::fac  => lhs.factorial(),
+            Rule::fac => lhs.factorial(),
             _ => unreachable!(),
         })
         .map_prefix(|op, rhs| match op.as_rule() {
-            Rule::neg  => ExpValue::Number(0.0).sub(rhs),
-            _          => unreachable!(),
+            Rule::neg => ExpValue::Number(Rational64::zero()).sub(rhs),
+            _ => unreachable!(),
         })
         .parse(expression.clone())
 }

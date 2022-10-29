@@ -46,6 +46,17 @@ impl ExpValue {
         return ExpValue::Error;
     }
 
+    pub fn factorial(self) -> ExpValue {
+        if let ExpValue::Number(a) = self {
+            let mut result = 1;
+            for i in 1..(a + 1.0) as u64 {
+                result *= i;
+            }
+            return ExpValue::Number(result as f64);
+        }
+        return ExpValue::Error;
+    }
+
     pub fn powf(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {

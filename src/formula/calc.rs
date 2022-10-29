@@ -58,6 +58,8 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
         .op(Op::infix(multiply, Left) | Op::infix(divide, Left))
         .op(Op::infix(modulus, Left))
         .op(Op::infix(power, Right))
+        .op(Op::prefix(Rule::neg))
+        .op(Op::postfix(Rule::fac))
         .op(Op::postfix(EOI));
 
     pratt
@@ -88,7 +90,12 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
         })
         .map_postfix(|lhs, op| match op.as_rule() {
             Rule::EOI => lhs,
+            Rule::fac  => lhs.factorial(),
             _ => unreachable!(),
+        })
+        .map_prefix(|op, rhs| match op.as_rule() {
+            Rule::neg  => ExpValue::Number(0.0).sub(rhs),
+            _          => unreachable!(),
         })
         .parse(expression.clone())
 }

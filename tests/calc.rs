@@ -195,6 +195,63 @@ mod number_calc_tests {
     }
 
     #[test]
+    fn calc_negation_add() {
+        let exp = formula::parse("1 + -1").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(0.0));
+    }
+
+    #[test]
+    fn calc_negation_sub() {
+        let exp = formula::parse("1 - -1").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(2.0));
+    }
+
+    #[test]
+    fn calc_negation_mul() {
+        let exp = formula::parse("1 * -1").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(-1.0));
+    }
+
+    #[test]
+    fn calc_negation_div() {
+        let exp = formula::parse("1 / -1").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(-1.0));
+    }
+
+    #[test]
+    fn calc_negation_pow() {
+        let exp = formula::parse("1 ^ -1").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(1.0));
+    }
+
+    #[test]
+    fn calc_negation_pow_2() {
+        let exp = formula::parse("1 ^ -2").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(1.0));
+    }
+
+
+    #[test]
+    fn calc_negation_pow_3() {
+        let exp = formula::parse("2 ^ -1").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(0.5));
+    }
+
+    #[test]
+    fn calc_negation_pow_4() {
+        let exp = formula::parse("2 ^ -2").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(0.25));
+    }
+
+    #[test]
     fn calc_mul() {
         let exp = formula::parse("a * b").unwrap();
         let result = formula::eval(exp, &create_num_table());
@@ -268,6 +325,41 @@ mod number_calc_tests {
         let exp = formula::parse("a % b").unwrap();
         let result = formula::eval(exp, &create_num_table());
         assert_eq!(result, ExpValue::Number(0.0));
+    }
+
+    #[test]
+    fn calc_factorial_0() {
+        let exp = formula::parse("0!").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(1.0));
+    }
+
+    #[test]
+    fn calc_factorial_1() {
+        let exp = formula::parse("1!").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(1.0));
+    }
+
+    #[test]
+    fn calc_factorial_5() {
+        let exp = formula::parse("5!").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(120.0));
+    }
+
+    #[test]
+    fn calc_factorial_5_5() {
+        let exp = formula::parse("5.5!").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(120.0));
+    }
+
+    #[test]
+    fn calc_factorial_neg_5() {
+        let exp = formula::parse("-5!").unwrap();
+        let result = formula::eval(exp, &create_num_table());
+        assert_eq!(result, ExpValue::Number(-120.0));
     }
 }
 

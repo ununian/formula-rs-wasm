@@ -3,15 +3,20 @@ ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* ~ "'"* }
 int = { ("+" | "-")? ~ ASCII_DIGIT+ }
 num = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
 
-operation   = _{ subtract | add | multiply | divide | power | rightShift | leftShift | modulus }
-add         = { "+" | "with" | "plus" | "add" }
-subtract    = { "-" | "without" | "subtract" | "minus" }
-multiply    = { "*" | "times" | "multiply by" | "mul" }
-divide      = { "/" | "divide by" | "divide" }
-power       = { "^" | "power" }
-modulus     = { "%" | "mod" }
-rightShift  = { ">>" }
-leftShift   = { "<<" }
+operation   = _{ infix | prefix | postfix }
+  infix   = _{ subtract | add | multiply | divide | power | rightShift | leftShift | modulus }
+    add         = { "+" | "with" | "plus" | "add" }
+    subtract    = { "-" | "without" | "subtract" | "minus" }
+    multiply    = { "*" | "times" | "multiply by" | "mul" }
+    divide      = { "/" | "divide by" | "divide" }
+    power       = { "^" | "power" }
+    modulus     = { "%" | "mod" }
+    rightShift  = { ">>" }
+    leftShift   = { "<<" }
+  prefix   =  _{ neg }
+    neg    =   { "-" } // Negation
+  postfix  =  _{ fac }
+    fac    =   { "!" } // Factorial
 
 compare     = _{ compare_eq }
 compare_eq  = { "=" }
@@ -27,7 +32,9 @@ function_parameter = { function_parameter_item ~ (";" ~ function_parameter_item)
 
 function = { function_name ~ "(" ~ function_parameter ~ ")" }
 atom = _{ function | ident | num | "(" ~ expr ~ ")"  }
-expr = { atom ~ (operation ~ atom)* }
+
+// expr = { atom ~ (operation ~ atom)* }
+expr = { prefix* ~ atom ~ postfix* ~ (infix ~ prefix* ~ atom ~ postfix* )* }
 
 stmt = _{ expr }
 

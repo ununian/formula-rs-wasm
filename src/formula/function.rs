@@ -9,7 +9,7 @@ use num::{FromPrimitive, Rational64, Zero};
 use pest::iterators::Pair;
 use serde_json::Value;
 
-use crate::formula::{calc::Rule, ExpValue, Identifier};
+use crate::formula::{calc::Identifier, calc::Rule, value::ExpValue};
 
 #[derive(Debug, Clone)]
 pub struct Function {

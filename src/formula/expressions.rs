@@ -5,7 +5,7 @@ use alloc::{
 };
 use pest::iterators::{Pair, Pairs};
 
-use crate::formula::{calc::Rule, Function, Identifier};
+use crate::formula::{calc::Identifier, calc::Rule, function::Function};
 
 #[derive(Debug, Clone)]
 pub struct Expression {

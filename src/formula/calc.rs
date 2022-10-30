@@ -15,7 +15,7 @@ pub struct Calculator;
 
 use serde_json::Value;
 
-use crate::formula::{ExpValue, Function};
+use crate::formula::{function::Function, value::ExpValue};
 
 pub fn parse(input: &str) -> Result<Pairs<Rule>, Error<Rule>> {
     Calculator::parse(Rule::calculation, input)

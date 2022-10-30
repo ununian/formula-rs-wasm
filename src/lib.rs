@@ -21,7 +21,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 pub fn greet(expr: String, data: String) -> String {
-    let formula = formula::parse(&expr).unwrap();
+    let formula = formula::calc::parse(&expr).unwrap();
     let table: Value = serde_json::from_str(&data).unwrap();
-    return format!("{}", formula::eval(formula, &table));
+    return format!("{}", formula::calc::eval(formula, &table));
 }

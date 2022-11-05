@@ -2,9 +2,9 @@
 
 ## 1.输出
 
-输出暂定只有 Error，Number，String，Bool，Date，TimeSpan 这些在输入完公式后就能知道的
+输出暂定只有 Error，Number，String，Bool，DateTime，Duration 这些在输入完公式后就能知道的
 然后针对 Number 可以让用户选择四舍五入，向上取整，向下取整，保留几位小数
-针对 Date，TimeSpan 可以让用户选择格式化输出，否则默认输出为 ISO 格式
+针对 DateTime，Duration 可以让用户选择格式化输出，否则默认输出为 ISO 格式
 
 后续会考虑输出数组，暂时可以用 join 函数来实现
 

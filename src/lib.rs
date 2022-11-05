@@ -10,7 +10,6 @@ extern crate pest_derive;
 pub mod formula;
 mod utils;
 
-use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -20,8 +19,9 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-pub fn greet(expr: String, data: String) -> String {
-    let formula = formula::calc::parse(&expr).unwrap();
-    let table: Value = serde_json::from_str(&data).unwrap();
-    return format!("{}", formula::calc::eval(formula, &table));
+pub fn greet(expr: String, _data: String) -> String {
+    // let formula = formula::calc::parse(&expr).unwrap();
+    // let table: Value = serde_json::from_str(&data).unwrap();
+    // return format!("{}", formula::calc::eval(formula, &table));
+    return format!("{}", expr);
 }

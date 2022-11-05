@@ -28,6 +28,7 @@ pest = {version = "2.4", default-features = false}
 pest_derive = {version = "2.4", default-features = false}
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 num = { version = "0.4.0", default-features = false, features = ["alloc"] }
+# chrono = { version = "0.4.0", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"

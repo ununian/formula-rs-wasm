@@ -1,106 +1,184 @@
 use core::fmt::Display;
 
 use alloc::{
-    string::{String},
+    string::{String, ToString},
     vec::Vec,
 };
-use num::{FromPrimitive, Rational64, ToPrimitive};
+use num::{Rational64, ToPrimitive, Zero};
 
-#[derive(Clone,Debug, PartialEq)]
-pub enum ExpValue {
-    Error,
+use super::{error::FormulaError, types::FormulaOperator};
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum FormulaValue {
+    Error(FormulaError),
     Bool(bool),
     Number(Rational64),
     String(String),
-    Array(Vec<ExpValue>),
+    DateTime(u64),
+    Duration(i64),
+    Array(Vec<FormulaValue>),
 }
 
-impl ExpValue {
-    pub fn to_number(string: &str) -> ExpValue {
-        match string.trim().parse::<f64>() {
-            Ok(num) => match Rational64::from_f64(num) {
-                Some(num) => ExpValue::Number(num),
-                _ => ExpValue::Error,
-            },
-            _ => ExpValue::Error,
-        }
-    }
+impl FormulaValue {
+    pub fn add(self, _rhs: FormulaValue) -> FormulaValue {
+        match (self.clone(), _rhs.clone()) {
+            (FormulaValue::Number(a), FormulaValue::Number(b)) => FormulaValue::Number(a + b),
+            (FormulaValue::String(a), FormulaValue::String(b)) => FormulaValue::String(a + &b),
 
-    pub fn add(self, _rhs: ExpValue) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            if let ExpValue::Number(b) = _rhs {
-                return ExpValue::Number(a + b);
+            (FormulaValue::Number(a), FormulaValue::String(b)) => {
+                FormulaValue::String(a.to_string() + &b)
             }
-        }
-        return ExpValue::Error;
-    }
-
-    pub fn sub(self, _rhs: ExpValue) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            if let ExpValue::Number(b) = _rhs {
-                return ExpValue::Number(a - b);
+            (FormulaValue::String(a), FormulaValue::Number(b)) => {
+                FormulaValue::String(a + &b.to_string())
             }
-        }
-        return ExpValue::Error;
-    }
 
-    pub fn mul(self, _rhs: ExpValue) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            if let ExpValue::Number(b) = _rhs {
-                return ExpValue::Number(a * b);
+            (FormulaValue::DateTime(a), FormulaValue::Duration(b)) => {
+                FormulaValue::DateTime(a + b.to_u64().unwrap())
             }
-        }
-        return ExpValue::Error;
-    }
-
-    pub fn div(self, _rhs: ExpValue) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            if let ExpValue::Number(b) = _rhs {
-                return ExpValue::Number(a / b);
+            (FormulaValue::Duration(a), FormulaValue::DateTime(b)) => {
+                FormulaValue::DateTime(a.to_u64().unwrap() + b)
             }
-        }
-        return ExpValue::Error;
-    }
+            (FormulaValue::Duration(a), FormulaValue::Duration(b)) => FormulaValue::Duration(a + b),
 
-    pub fn factorial(self) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            let mut result = 1;
-            for i in 1..(a.to_i64().unwrap_or(0) + 1) as i64 {
-                result *= i;
+            (FormulaValue::Array(a), FormulaValue::Array(b)) => {
+                let mut c = a;
+                c.extend(b);
+                FormulaValue::Array(c)
             }
-            return ExpValue::Number(Rational64::from_integer(result));
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Add,
+                self.into(),
+                Some(_rhs.into()),
+            )),
         }
-        return ExpValue::Error;
     }
 
-    pub fn powf(self, _rhs: ExpValue) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            if let ExpValue::Number(b) = _rhs {
-                match b.to_i32() {
-                    Some(b) => return ExpValue::Number(a.pow(b)),
-                    None => return ExpValue::Error,
+    pub fn sub(self, _rhs: FormulaValue) -> FormulaValue {
+        match (&self, &_rhs) {
+            (FormulaValue::Number(a), FormulaValue::Number(b)) => FormulaValue::Number(a - b),
+
+            (FormulaValue::DateTime(a), FormulaValue::Duration(b)) => {
+                FormulaValue::DateTime(a - b.to_u64().unwrap())
+            }
+            (FormulaValue::Duration(a), FormulaValue::Duration(b)) => FormulaValue::Duration(a - b),
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Sub,
+                self.into(),
+                Some(_rhs.into()),
+            )),
+        }
+    }
+
+    pub fn mul(self, _rhs: FormulaValue) -> FormulaValue {
+        match (&self, &_rhs) {
+            (FormulaValue::Number(a), FormulaValue::Number(b)) => FormulaValue::Number(a * b),
+            (FormulaValue::Duration(a), FormulaValue::Number(b)) => FormulaValue::Duration(
+                (a.to_f64().unwrap() * b.to_f64().unwrap())
+                    .floor()
+                    .to_i64()
+                    .unwrap(),
+            ),
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Mul,
+                self.into(),
+                Some(_rhs.into()),
+            )),
+        }
+    }
+
+    pub fn div(self, _rhs: FormulaValue) -> FormulaValue {
+        match (&self, &_rhs) {
+            (FormulaValue::Number(a), FormulaValue::Number(b)) => {
+                if b == &Rational64::zero() {
+                    FormulaValue::Error(FormulaError::divide_by_zero())
+                } else {
+                    FormulaValue::Number(a / b)
                 }
             }
+
+            (FormulaValue::Duration(a), FormulaValue::Number(b)) => {
+                if b == &Rational64::zero() {
+                    FormulaValue::Error(FormulaError::divide_by_zero())
+                } else {
+                    FormulaValue::Duration(
+                        (a.to_f64().unwrap() / b.to_f64().unwrap())
+                            .floor()
+                            .to_i64()
+                            .unwrap(),
+                    )
+                }
+            }
+
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Div,
+                self.into(),
+                Some(_rhs.into()),
+            )),
         }
-        return ExpValue::Error;
     }
 
-    pub fn rem(self, _rhs: ExpValue) -> ExpValue {
-        if let ExpValue::Number(a) = self {
-            if let ExpValue::Number(b) = _rhs {
-                return ExpValue::Number(a % b);
+    pub fn factorial(self) -> FormulaValue {
+        match self {
+            FormulaValue::Number(a) => {
+                if a.is_integer() {
+                    if a.lt(&Rational64::zero()) {
+                        return FormulaValue::Error(FormulaError::factorial_not_negative());
+                    }
+
+                    let mut result = Rational64::from_integer(1);
+                    for i in 1..a.to_i64().unwrap() + 1 {
+                        result *= Rational64::from_integer(i);
+                    }
+                    FormulaValue::Number(result)
+                } else {
+                    FormulaValue::Error(FormulaError::factorial_not_integer())
+                }
             }
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Factorial,
+                self.into(),
+                None,
+            )),
         }
-        return ExpValue::Error;
+    }
+
+    pub fn pow(self, _rhs: FormulaValue) -> FormulaValue {
+        match (&self, &_rhs) {
+            (FormulaValue::Number(a), FormulaValue::Number(b)) => {
+                if !b.is_integer() {
+                    return FormulaValue::Error(FormulaError::pow_not_rational());
+                }
+                match b.to_i32() {
+                    Some(power) => FormulaValue::Number(a.pow(power)),
+                    None => FormulaValue::Error(FormulaError::number_conversion_error()),
+                }
+            }
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Pow,
+                self.into(),
+                Some(_rhs.into()),
+            )),
+        }
+    }
+
+    pub fn rem(self, _rhs: FormulaValue) -> FormulaValue {
+        match (&self, &_rhs) {
+            (FormulaValue::Number(a), FormulaValue::Number(b)) => FormulaValue::Number(a % b),
+            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+                FormulaOperator::Rem,
+                self.into(),
+                Some(_rhs.into()),
+            )),
+        }
     }
 }
 
-impl Display for ExpValue {
+impl Display for FormulaValue {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ExpValue::Error => write!(f, "Error"),
-            ExpValue::Bool(b) => write!(f, "{}", b),
-            ExpValue::Number(n) => {
+            FormulaValue::Error(err) => write!(f, "Error: {:?}", err),
+            FormulaValue::Bool(b) => write!(f, "{}", b),
+            FormulaValue::Number(n) => {
                 if n.is_integer() {
                     write!(f, "{}", n.to_integer())
                 } else if let Some(n) = n.to_f64() {
@@ -109,8 +187,8 @@ impl Display for ExpValue {
                     write!(f, "Error")
                 }
             }
-            ExpValue::String(s) => write!(f, "{}", s),
-            ExpValue::Array(a) => {
+            FormulaValue::String(s) => write!(f, "{}", s),
+            FormulaValue::Array(a) => {
                 write!(f, "[")?;
                 for (i, v) in a.iter().enumerate() {
                     write!(f, "{}", v)?;
@@ -120,6 +198,8 @@ impl Display for ExpValue {
                 }
                 write!(f, "]")
             }
+            FormulaValue::DateTime(_) => write!(f, "{:?}", self),
+            FormulaValue::Duration(_) => write!(f, "{:?}", self),
         }
     }
 }

@@ -114,24 +114,24 @@ mod formula_parse_literal_string {
 }
 
 #[cfg(test)]
-mod formula_parse_ident {
+mod formula_parse_identifier {
     use formula_rs_wasm::formula::formula::{Formula, Rule};
 
     use crate::{get_rules, match_rules};
 
     #[test]
-    fn ident_allow_value() {
+    fn identifier_allow_value() {
         vec!["a", "_a", "a1", "我的变量", "我12", "$", "$$"]
             .iter()
             .for_each(|s| {
                 let rules = get_rules(Formula::parse(s));
                 assert_eq!(rules.clone().count(), 2);
-                match_rules(rules, vec![Rule::ident]);
+                match_rules(rules, vec![Rule::identifier]);
             });
     }
 
     #[test]
-    fn ident_illegal_value() {
+    fn identifier_illegal_value() {
         vec!["1a", "1_", "%a"].iter().for_each(|s| {
             let result = Formula::parse(s);
             println!("result: {:?}", result);
@@ -140,11 +140,11 @@ mod formula_parse_ident {
     }
 
     #[test]
-    fn ident_illegal_value_type() {
+    fn identifier_illegal_value_type() {
         vec!["1", "-1"].iter().for_each(|s| {
             let mut rules = get_rules(Formula::parse(s));
             assert_eq!(rules.clone().count(), 2);
-            assert_ne!(rules.next().unwrap().as_rule(), Rule::ident);
+            assert_ne!(rules.next().unwrap().as_rule(), Rule::identifier);
         });
     }
 }
@@ -187,13 +187,13 @@ mod formula_parse_dot {
         vec!["a.a", "$.a"].iter().for_each(|s| {
             let rules = get_rules(Formula::parse(s));
             assert_eq!(rules.clone().count(), 3);
-            match_rules(rules, vec![Rule::ident, Rule::dot]);
+            match_rules(rules, vec![Rule::identifier, Rule::dot]);
         });
 
         vec!["a.a.a.a"].iter().for_each(|s| {
             let rules = get_rules(Formula::parse(s));
             assert_eq!(rules.clone().count(), 5);
-            match_rules(rules, vec![Rule::ident, Rule::dot]);
+            match_rules(rules, vec![Rule::identifier, Rule::dot]);
         });
     }
 }
@@ -239,6 +239,16 @@ mod formula_parse_function {
         .iter()
         .for_each(|s| {
             let rules = get_rules(Formula::parse(s));
+            match_rules(rules, vec![Rule::function]);
+        });
+
+        vec![
+            "count( where( subtask, $.updateTime > (now(aa.a + 2) + day(1) ) ) )",
+        ]
+        .iter()
+        .for_each(|s| {
+            let rules = get_rules(Formula::parse(s));
+            println!("rules: {:?}", rules.clone().collect::<Vec<_>>());
             match_rules(rules, vec![Rule::function]);
         });
 

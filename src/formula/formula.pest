@@ -12,7 +12,7 @@ string = @{ "\"" ~ (!("\"") ~ ANY)* ~ "\"" }
 literal = _{ num | string }
 
 // 标志符，这里允许中文（合法 Unicode 字母），但是不允许数字开头
-ident = @{ (LETTER | "$" | "_") ~ (LETTER | "$" | "_" | ASCII_DIGIT)* }
+identifier = @{ (LETTER | "$" | "_") ~ (LETTER | "$" | "_" | ASCII_DIGIT)* }
 
 // 比较运算符
 compare     = _{ compare_eq | compare_ne | compare_ge | compare_le | compare_lt | compare_gt  }
@@ -37,18 +37,18 @@ operation   = _{ infix | postfix }
   postfix  =  _{ fac }
     fac    =   { "!" } // 阶乘
 
-dot = @{ "." ~ ident } // DOT 运算符，用来访问对象的属性、函数等
-ident_with_dot = _{ ident ~ dot* }
+dot = @{ "." ~ identifier } // DOT 运算符，用来访问对象的属性、函数等
+identifier_with_dot = _{ identifier ~ dot* }
 
 
 
-function_name = { ident_with_dot }
-function_parameter = { expr | atom }
-function = { function_name ~ "(" ~ (function_parameter ~ ("," ~ function_parameter)*)* ~ ")" }
+function_name = { identifier_with_dot }
+function_argument = { expr | atom }
+function = { function_name ~ "(" ~ (function_argument ~ ("," ~ function_argument)*)* ~ ")" }
 
 
 // 能使用运算符的原子单元
-atom = _{ (function | ident | literal | "(" ~ expr ~ ")")  ~ dot*  }
+atom = _{ (function | identifier | literal | "(" ~ expr ~ ")")  ~ dot*  }
 
 compare_expr = { 
   (atom | operation_expr) ~ compare ~ (operation_expr | atom) 
@@ -63,9 +63,6 @@ expr = _{
   compare_expr |
   operation_expr 
 }
-
-
-
 
 stmt = _{ (expr+ | atom) ~ ((";" ~ NEWLINE* ~ (expr+ | atom)*)*) }
 

@@ -5,6 +5,9 @@ use super::types::{FormulaOperator, FormulaValueType};
 #[derive(Clone, Debug, PartialEq)]
 pub enum FormulaErrorType {
     DefaultError,
+    
+    // 类型相关错误
+    TypeMismatchError,
 
     // 数值相关错误
     OperatorMismatchError(FormulaOperator, FormulaValueType, Option<FormulaValueType>),
@@ -66,5 +69,9 @@ impl FormulaError {
 
     pub fn factorial_not_negative() -> Self {
         Self::new(FormulaErrorType::FactorialNotNegative)
+    }
+
+    pub fn type_mismatch_error() -> Self {
+        Self::new(FormulaErrorType::TypeMismatchError)
     }
 }

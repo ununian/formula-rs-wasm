@@ -13,7 +13,7 @@ fn get_rules(result: Result<Formula, Error<Rule>>) -> Pairs<Rule> {
     }
     assert!(result.is_ok());
     let formula = result.unwrap();
-    formula.rules
+    formula.paris
 }
 
 // fn get_rules_with_log(result: Result<Formula, Error<Rule>>) -> Pairs<Rule> {
@@ -21,16 +21,16 @@ fn get_rules(result: Result<Formula, Error<Rule>>) -> Pairs<Rule> {
 //     get_rules(result)
 // }
 
-fn match_expr_rules(mut rules: Pairs<Rule>, target: Vec<Rule>) {
-    let expr = rules.next().unwrap();
-    assert_eq!(expr.as_rule(), Rule::expr);
-    let mut expr_rules = expr.into_inner();
-    for target_rule in target {
-        let rule = expr_rules.next();
-        assert!(rule.is_some());
-        assert_eq!(rule.unwrap().as_rule(), target_rule);
-    }
-}
+// fn match_expr_rules(mut rules: Pairs<Rule>, target: Vec<Rule>) {
+//     let expr = rules.next().unwrap();
+//     assert_eq!(expr.as_rule(), Rule::expr);
+//     let mut expr_rules = expr.into_inner();
+//     for target_rule in target {
+//         let rule = expr_rules.next();
+//         assert!(rule.is_some());
+//         assert_eq!(rule.unwrap().as_rule(), target_rule);
+//     }
+// }
 
 fn match_rules(mut rules: Pairs<Rule>, target: Vec<Rule>) {
     for target_rule in target {

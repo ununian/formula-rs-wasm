@@ -1,4 +1,4 @@
-use formula_rs_wasm::formula::formula::{Formula, Rule};
+use formula_rs_wasm::parse::parse::{Formula, Rule};
 use pest::{error::Error, iterators::Pairs};
 
 extern crate alloc;
@@ -43,7 +43,7 @@ fn match_rules(mut rules: Pairs<Rule>, target: Vec<Rule>) {
 #[cfg(test)]
 mod formula_parse_literal_num {
 
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::get_rules;
 
@@ -77,7 +77,7 @@ mod formula_parse_literal_num {
 
 #[cfg(test)]
 mod formula_parse_literal_string {
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::{get_rules, match_rules};
 
@@ -115,7 +115,7 @@ mod formula_parse_literal_string {
 
 #[cfg(test)]
 mod formula_parse_identifier {
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::{get_rules, match_rules};
 
@@ -151,7 +151,7 @@ mod formula_parse_identifier {
 
 #[cfg(test)]
 mod formula_parse_operation {
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::get_rules;
 
@@ -178,7 +178,7 @@ mod formula_parse_operation {
 
 #[cfg(test)]
 mod formula_parse_dot {
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::{get_rules, match_rules};
 
@@ -200,7 +200,7 @@ mod formula_parse_dot {
 
 #[cfg(test)]
 mod formula_parse_compare {
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::{get_rules, match_rules};
 
@@ -224,7 +224,7 @@ mod formula_parse_compare {
 
 #[cfg(test)]
 mod formula_parse_function {
-    use formula_rs_wasm::formula::formula::{Formula, Rule};
+    use formula_rs_wasm::parse::parse::{Formula, Rule};
 
     use crate::{get_rules, match_rules};
 
@@ -239,7 +239,7 @@ mod formula_parse_function {
         .iter()
         .for_each(|s| {
             let rules = get_rules(Formula::parse(s));
-            match_rules(rules, vec![Rule::function]);
+            match_rules(rules, vec![Rule::function_call]);
         });
 
         vec![
@@ -249,7 +249,7 @@ mod formula_parse_function {
         .for_each(|s| {
             let rules = get_rules(Formula::parse(s));
             println!("rules: {:?}", rules.clone().collect::<Vec<_>>());
-            match_rules(rules, vec![Rule::function]);
+            match_rules(rules, vec![Rule::function_call]);
         });
 
         vec![

@@ -7,7 +7,9 @@ use alloc::string::String;
 #[macro_use]
 extern crate pest_derive;
 
-pub mod formula;
+pub mod parse;
+pub mod types;
+pub mod execute;
 mod utils;
 
 use wasm_bindgen::prelude::*;

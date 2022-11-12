@@ -1,9 +1,8 @@
 #[cfg(test)]
 mod formula_value {
-    use formula_rs_wasm::formula::{
-        error::FormulaError,
-        types::{FormulaOperator, FormulaValueType},
-        value::FormulaValue,
+    use formula_rs_wasm::{
+        execute::{error::ExecuteError, value::FormulaValue},
+        types::{operator::FormulaOperator, types::FormulaValueType},
     };
     use num::{FromPrimitive, Rational64};
 
@@ -40,22 +39,13 @@ mod formula_value {
             FormulaValue::Duration(7).add(FormulaValue::Duration(1)),
             FormulaValue::Duration(8)
         );
-
-        assert_eq!(
-            FormulaValue::Array(vec![FormulaValue::Number(1.into())])
-                .add(FormulaValue::Array(vec![FormulaValue::Number(2.into())])),
-            FormulaValue::Array(vec![
-                FormulaValue::Number(1.into()),
-                FormulaValue::Number(2.into())
-            ])
-        );
     }
 
     #[test]
     fn add_error() {
         assert_eq!(
             FormulaValue::Number(1.into()).add(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 FormulaValueType::Number,
                 Some(FormulaValueType::Bool)
@@ -63,8 +53,18 @@ mod formula_value {
         );
 
         assert_eq!(
+            FormulaValue::Array(vec![FormulaValue::Number(1.into())])
+                .add(FormulaValue::Array(vec![FormulaValue::Number(2.into())])),
+            FormulaValue::Error(ExecuteError::operator_mismatch(
+                FormulaOperator::Add,
+                FormulaValueType::Array,
+                Some(FormulaValueType::Array)
+            ))
+        );
+
+        assert_eq!(
             FormulaValue::Bool(true).add(FormulaValue::Number(1.into())),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 FormulaValueType::Bool,
                 Some(FormulaValueType::Number)
@@ -73,7 +73,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::String("a".into()).add(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 FormulaValueType::String,
                 Some(FormulaValueType::Bool)
@@ -82,7 +82,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::DateTime(1).add(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 FormulaValueType::DateTime,
                 Some(FormulaValueType::Bool)
@@ -91,7 +91,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::Duration(1).add(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 FormulaValueType::Duration,
                 Some(FormulaValueType::Bool)
@@ -100,7 +100,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::DateTime(1).add(FormulaValue::DateTime(1)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 FormulaValueType::DateTime,
                 Some(FormulaValueType::DateTime)
@@ -130,7 +130,7 @@ mod formula_value {
     fn sub_error() {
         assert_eq!(
             FormulaValue::Number(1.into()).sub(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Sub,
                 FormulaValueType::Number,
                 Some(FormulaValueType::Bool)
@@ -139,7 +139,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::String("".to_string()).sub(FormulaValue::String("".to_string())),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Sub,
                 FormulaValueType::String,
                 Some(FormulaValueType::String)
@@ -148,7 +148,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::Bool(true).sub(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Sub,
                 FormulaValueType::Bool,
                 Some(FormulaValueType::Bool)
@@ -187,18 +187,18 @@ mod formula_value {
         assert_eq!(
             FormulaValue::Number(2.into())
                 .div(FormulaValue::Number(Rational64::from_f64(0.0).unwrap())),
-            FormulaValue::Error(FormulaError::divide_by_zero())
+            FormulaValue::Error(ExecuteError::divide_by_zero())
         );
 
         assert_eq!(
             FormulaValue::Duration(2.into())
                 .div(FormulaValue::Number(Rational64::from_f64(0.0).unwrap())),
-            FormulaValue::Error(FormulaError::divide_by_zero())
+            FormulaValue::Error(ExecuteError::divide_by_zero())
         );
 
         assert_eq!(
             FormulaValue::Number(1.into()).div(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Div,
                 FormulaValueType::Number,
                 Some(FormulaValueType::Bool)
@@ -207,7 +207,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::String("".to_string()).div(FormulaValue::String("".to_string())),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Div,
                 FormulaValueType::String,
                 Some(FormulaValueType::String)
@@ -216,7 +216,7 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::Bool(true).div(FormulaValue::Bool(true)),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Div,
                 FormulaValueType::Bool,
                 Some(FormulaValueType::Bool)
@@ -249,7 +249,7 @@ mod formula_value {
         assert_eq!(
             FormulaValue::Number(2.into())
                 .pow(FormulaValue::Number(Rational64::from_f64(1.1).unwrap())),
-            FormulaValue::Error(FormulaError::pow_not_rational())
+            FormulaValue::Error(ExecuteError::pow_not_rational())
         );
     }
 
@@ -280,7 +280,7 @@ mod formula_value {
     fn factorial_error() {
         assert_eq!(
             FormulaValue::DateTime(1).factorial(),
-            FormulaValue::Error(FormulaError::operator_mismatch_error(
+            FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Factorial,
                 FormulaValueType::DateTime,
                 None
@@ -289,12 +289,12 @@ mod formula_value {
 
         assert_eq!(
             FormulaValue::Number(Rational64::from_f64(1.1).unwrap()).factorial(),
-            FormulaValue::Error(FormulaError::factorial_not_integer())
+            FormulaValue::Error(ExecuteError::factorial_not_integer())
         );
 
         assert_eq!(
             FormulaValue::Number((-1).into()).factorial(),
-            FormulaValue::Error(FormulaError::factorial_not_negative())
+            FormulaValue::Error(ExecuteError::factorial_not_negative())
         );
     }
 

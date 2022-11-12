@@ -6,17 +6,21 @@ use alloc::{
 };
 use num::{Rational64, ToPrimitive, Zero};
 
-use super::{error::FormulaError, types::FormulaOperator};
+use crate::types::{operator::FormulaOperator, types::FormulaValueType};
+
+use super::error::ExecuteError;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum FormulaValue {
-    Error(FormulaError),
+    Error(ExecuteError),
     Bool(bool),
     Number(Rational64),
     String(String),
     DateTime(u64),
     Duration(i64),
     Array(Vec<FormulaValue>),
+    // Object(Object),
+    // Function(Function),
 }
 
 impl FormulaValue {
@@ -40,12 +44,7 @@ impl FormulaValue {
             }
             (FormulaValue::Duration(a), FormulaValue::Duration(b)) => FormulaValue::Duration(a + b),
 
-            (FormulaValue::Array(a), FormulaValue::Array(b)) => {
-                let mut c = a;
-                c.extend(b);
-                FormulaValue::Array(c)
-            }
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Add,
                 self.into(),
                 Some(_rhs.into()),
@@ -61,7 +60,7 @@ impl FormulaValue {
                 FormulaValue::DateTime(a - b.to_u64().unwrap())
             }
             (FormulaValue::Duration(a), FormulaValue::Duration(b)) => FormulaValue::Duration(a - b),
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Sub,
                 self.into(),
                 Some(_rhs.into()),
@@ -78,7 +77,7 @@ impl FormulaValue {
                     .to_i64()
                     .unwrap(),
             ),
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Mul,
                 self.into(),
                 Some(_rhs.into()),
@@ -90,7 +89,7 @@ impl FormulaValue {
         match (&self, &_rhs) {
             (FormulaValue::Number(a), FormulaValue::Number(b)) => {
                 if b == &Rational64::zero() {
-                    FormulaValue::Error(FormulaError::divide_by_zero())
+                    FormulaValue::Error(ExecuteError::divide_by_zero())
                 } else {
                     FormulaValue::Number(a / b)
                 }
@@ -98,7 +97,7 @@ impl FormulaValue {
 
             (FormulaValue::Duration(a), FormulaValue::Number(b)) => {
                 if b == &Rational64::zero() {
-                    FormulaValue::Error(FormulaError::divide_by_zero())
+                    FormulaValue::Error(ExecuteError::divide_by_zero())
                 } else {
                     FormulaValue::Duration(
                         (a.to_f64().unwrap() / b.to_f64().unwrap())
@@ -109,7 +108,7 @@ impl FormulaValue {
                 }
             }
 
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Div,
                 self.into(),
                 Some(_rhs.into()),
@@ -122,7 +121,7 @@ impl FormulaValue {
             FormulaValue::Number(a) => {
                 if a.is_integer() {
                     if a.lt(&Rational64::zero()) {
-                        return FormulaValue::Error(FormulaError::factorial_not_negative());
+                        return FormulaValue::Error(ExecuteError::factorial_not_negative());
                     }
 
                     let mut result = Rational64::from_integer(1);
@@ -131,10 +130,10 @@ impl FormulaValue {
                     }
                     FormulaValue::Number(result)
                 } else {
-                    FormulaValue::Error(FormulaError::factorial_not_integer())
+                    FormulaValue::Error(ExecuteError::factorial_not_integer())
                 }
             }
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Factorial,
                 self.into(),
                 None,
@@ -146,14 +145,14 @@ impl FormulaValue {
         match (&self, &_rhs) {
             (FormulaValue::Number(a), FormulaValue::Number(b)) => {
                 if !b.is_integer() {
-                    return FormulaValue::Error(FormulaError::pow_not_rational());
+                    return FormulaValue::Error(ExecuteError::pow_not_rational());
                 }
                 match b.to_i32() {
                     Some(power) => FormulaValue::Number(a.pow(power)),
-                    None => FormulaValue::Error(FormulaError::number_conversion_error()),
+                    None => FormulaValue::Error(ExecuteError::number_conversion_error()),
                 }
             }
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Pow,
                 self.into(),
                 Some(_rhs.into()),
@@ -164,7 +163,7 @@ impl FormulaValue {
     pub fn rem(self, _rhs: FormulaValue) -> FormulaValue {
         match (&self, &_rhs) {
             (FormulaValue::Number(a), FormulaValue::Number(b)) => FormulaValue::Number(a % b),
-            _ => FormulaValue::Error(FormulaError::operator_mismatch_error(
+            _ => FormulaValue::Error(ExecuteError::operator_mismatch(
                 FormulaOperator::Rem,
                 self.into(),
                 Some(_rhs.into()),
@@ -200,6 +199,20 @@ impl Display for FormulaValue {
             }
             FormulaValue::DateTime(_) => write!(f, "{:?}", self),
             FormulaValue::Duration(_) => write!(f, "{:?}", self),
+        }
+    }
+}
+
+impl From<FormulaValue> for FormulaValueType {
+    fn from(value: FormulaValue) -> Self {
+        match value {
+            FormulaValue::Error(_) => FormulaValueType::Error,
+            FormulaValue::Bool(_) => FormulaValueType::Bool,
+            FormulaValue::Number(_) => FormulaValueType::Number,
+            FormulaValue::String(_) => FormulaValueType::String,
+            FormulaValue::DateTime(_) => FormulaValueType::DateTime,
+            FormulaValue::Duration(_) => FormulaValueType::Duration,
+            FormulaValue::Array(_) => FormulaValueType::Array,
         }
     }
 }

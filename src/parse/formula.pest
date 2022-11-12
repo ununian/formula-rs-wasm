@@ -7,7 +7,7 @@ int = { ("+" | "-")? ~ ASCII_DIGIT+ } // 整数
 num = @{ int ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ int)? }
 
 // 字符串
-string = @{ "\"" ~ (!("\"") ~ ANY)* ~ "\"" }
+string = @{ ("\"" ~ (!("\"") ~ ANY)* ~ "\"")  | ("'" ~ (!("'") ~ ANY)* ~ "'") }
 
 literal = _{ num | string }
 
@@ -38,17 +38,14 @@ operation   = _{ infix | postfix }
     fac    =   { "!" } // 阶乘
 
 dot = @{ "." ~ identifier } // DOT 运算符，用来访问对象的属性、函数等
-identifier_with_dot = _{ identifier ~ dot* }
+variable = @{ identifier ~ dot* }
 
-
-
-function_name = { identifier_with_dot }
 function_argument = { expr | atom }
-function = { function_name ~ "(" ~ (function_argument ~ ("," ~ function_argument)*)* ~ ")" }
+function_call = { variable ~ "(" ~ (function_argument ~ ("," ~ function_argument)*)* ~ ")" }
 
 
 // 能使用运算符的原子单元
-atom = _{ (function | identifier | literal | "(" ~ expr ~ ")")  ~ dot*  }
+atom = _{ (function_call | identifier | literal | "(" ~ expr ~ ")")  ~ dot*  }
 
 compare_expr = { 
   (atom | operation_expr) ~ compare ~ (operation_expr | atom) 

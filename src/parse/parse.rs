@@ -3,7 +3,7 @@ extern crate pest;
 use pest::{error::Error, iterators::Pairs, Parser};
 
 #[derive(Parser)]
-#[grammar = "formula/formula.pest"]
+#[grammar = "parse/formula.pest"]
 pub struct FormulaPest;
 
 #[derive(Debug, Clone)]

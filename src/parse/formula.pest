@@ -9,7 +9,7 @@ num = @{ int ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ int)? }
 // 字符串
 string = @{ ("\"" ~ (!("\"") ~ ANY)* ~ "\"")  | ("'" ~ (!("'") ~ ANY)* ~ "'") }
 
-literal = _{ num | string }
+literal = { num | string }
 
 // 标志符，这里允许中文（合法 Unicode 字母），但是不允许数字开头
 identifier = @{ (LETTER | "$" | "_") ~ (LETTER | "$" | "_" | ASCII_DIGIT)* }
@@ -37,8 +37,8 @@ operation   = _{ infix | postfix }
   postfix  =  _{ fac }
     fac    =   { "!" } // 阶乘
 
-dot = @{ "." ~ identifier } // DOT 运算符，用来访问对象的属性、函数等
-variable = @{ identifier ~ dot* }
+dot = { "." ~ identifier } // DOT 运算符，用来访问对象的属性、函数等
+variable = { identifier ~ dot* }
 
 function_argument = { expr | atom }
 function_call = { variable ~ "(" ~ (function_argument ~ ("," ~ function_argument)*)* ~ ")" }
@@ -61,6 +61,7 @@ expr = _{
   operation_expr 
 }
 
-stmt = _{ (expr+ | atom) ~ ((";" ~ NEWLINE* ~ (expr+ | atom)*)*) }
+statement = { (expr+ | atom) }
+statements = _{ statement ~ ((";" ~ NEWLINE* ~ statement*)*) }
 
-formula = _{ SOI ~ stmt ~ EOI }
+formula = _{ SOI ~ statements ~ EOI }

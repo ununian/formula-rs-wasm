@@ -231,6 +231,17 @@ pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
     match pair.as_rule() {
         Rule::variable => variable_to_ast(pair),
         Rule::expr => expression_to_ast(pair.into_inner()),
+        Rule::operation_expr => expression_to_ast(pair.into_inner()),
+        Rule::compare_expr => expression_to_ast(pair.into_inner()),
+        Rule::identifier => {
+            let identifier = Identifier {
+                name: pair.as_str().to_string(),
+            };
+            (
+                pair.clone().into(),
+                ExpressionKind::IdentifierKind(pair.clone().into(), identifier),
+            )
+        }
         _ => unreachable!(),
     }
 }
@@ -245,29 +256,7 @@ pub fn variable_or_literal_or_expression(pair: Pair<Rule>) -> (Range, Expression
 pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
     TYPE_PRATT_PARSER
         .map_primary(|pair| match pair.as_rule() {
-            Rule::num => (
-                pair.clone().into(),
-                ExpressionKind::NumberLiteralKind(
-                    pair.clone().into(),
-                    NumberLiteral {
-                        value: Rational64::from_str(pair.as_str()).unwrap(),
-                        raw: pair.as_str().to_string(),
-                    },
-                ),
-            ),
-            Rule::string => {
-                let len = pair.as_str().len();
-                (
-                    pair.clone().into(),
-                    ExpressionKind::StringLiteralKind(
-                        pair.clone().into(),
-                        StringLiteral {
-                            raw: pair.as_str().to_string(),
-                            value: pair.as_str()[1..len - 1].to_string(),
-                        },
-                    ),
-                )
-            }
+            Rule::literal => literal_to_ast(pair),
             Rule::function_call => {
                 let mut pairs = pair.clone().into_inner();
 
@@ -275,13 +264,15 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
 
                 let callee = variable_or_expression(callee);
 
-                let arguments = pairs.flat_map(|arguments| {
-                    arguments
-                        .into_inner()
-                        .map(|pair| variable_or_literal_or_expression(pair))
-                        .map(|(range, expression)| (range, Box::new(expression)))
-                        .collect::<Vec<_>>()
-                }).collect::<Vec<_>>();
+                let arguments = pairs
+                    .flat_map(|arguments| {
+                        arguments
+                            .into_inner()
+                            .map(|pair| variable_or_literal_or_expression(pair))
+                            .map(|(range, expression)| (range, Box::new(expression)))
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>();
 
                 (
                     pair.clone().into(),

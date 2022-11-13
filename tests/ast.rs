@@ -11,7 +11,8 @@ mod formula_parse_ast {
         // let code = "a.b.c.d(1)";
         // let code = "a(1)";
         // let code = "a('1')";
-        let code = "a(1,2,3,'4')";
+        // let code = "a(1,2,3,'4')";
+        let code = "a(1,2, 3+4,-2,'4' + '4',a)";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
         let (_, ast) = to_ast(formula.paris);

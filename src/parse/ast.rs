@@ -6,7 +6,6 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use alloc::{format, vec};
 use num::Rational64;
 use pest::{
     iterators::{Pair, Pairs},
@@ -104,6 +103,7 @@ lazy_static::lazy_static! {
             .op(Op::infix(multiply, Left) | Op::infix(divide, Left))
             .op(Op::infix(modulus, Left))
             .op(Op::infix(power, Right))
+            .op(Op::postfix(Rule::fac))
             .op(Op::postfix(Rule::dot))
             .op(Op::postfix(EOI))
     };
@@ -193,11 +193,6 @@ pub fn variable_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
 pub fn literal_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
     let range = Range::from(pair.clone());
 
-    let text = pair
-        .clone()
-        .into_inner()
-        .map(|p| p.as_str())
-        .collect::<Vec<_>>();
     let mut inner = pair.into_inner();
     let first = inner.next().unwrap();
     match first.as_rule() {
@@ -227,7 +222,6 @@ pub fn literal_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
 }
 
 pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
-    let g = (pair.as_rule(), pair.as_str());
     match pair.as_rule() {
         Rule::variable => variable_to_ast(pair),
         Rule::expr => expression_to_ast(pair.into_inner()),
@@ -322,9 +316,23 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
         })
         .map_postfix(|lhs, op| match op.as_rule() {
             Rule::EOI => lhs,
+            Rule::fac => {
+                let range = Range(lhs.0 .0, op.as_span().end());
+                (
+                    range.clone(),
+                    ExpressionKind::UnaryExpressionKind(
+                        range,
+                        UnaryExpression {
+                            prefix: false,
+                            operator: (op.clone().into(), op.as_str().to_string()),
+                            argument: (lhs.0, Box::new(lhs.1)),
+                        },
+                    ),
+                )
+            }
             Rule::dot => {
                 let inner = op.into_inner();
-                let (range, expression) = expression_to_ast(inner);
+                let (range, _) = expression_to_ast(inner);
                 (
                     Range(lhs.0 .0, range.1),
                     ExpressionKind::PropertyAccessExpressionKind(

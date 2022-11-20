@@ -222,6 +222,8 @@ pub fn literal_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
 }
 
 pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
+    let rule = pair.as_rule();
+    let txt = pair.as_str();
     match pair.as_rule() {
         Rule::variable => variable_to_ast(pair),
         Rule::expr => expression_to_ast(pair.into_inner()),
@@ -236,6 +238,7 @@ pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
                 ExpressionKind::IdentifierKind(pair.clone().into(), identifier),
             )
         }
+        Rule::function_call => function_call_to_ast(pair),
         _ => unreachable!(),
     }
 }
@@ -247,39 +250,43 @@ pub fn variable_or_literal_or_expression(pair: Pair<Rule>) -> (Range, Expression
     }
 }
 
+fn function_call_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
+    let mut pairs = pair.clone().into_inner();
+
+    let callee = pairs.next().unwrap();
+
+    let callee = variable_or_expression(callee);
+
+    let text = pairs.clone().map(|p| p.as_str()).collect::<Vec<_>>();
+
+    let arguments = pairs
+        .flat_map(|arguments| {
+            arguments
+                .into_inner()
+                .map(|pair| variable_or_literal_or_expression(pair))
+                .map(|(range, expression)| (range, Box::new(expression)))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+    (
+        pair.clone().into(),
+        ExpressionKind::CallExpressionKind(
+            pair.clone().into(),
+            CallExpression {
+                callee: (callee.0, Box::new(callee.1)),
+                arguments,
+            },
+        ),
+    )
+}
+
 pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
     TYPE_PRATT_PARSER
         .map_primary(|pair| match pair.as_rule() {
             Rule::literal => literal_to_ast(pair),
-            Rule::function_call => {
-                let mut pairs = pair.clone().into_inner();
-
-                let callee = pairs.next().unwrap();
-
-                let callee = variable_or_expression(callee);
-
-                let arguments = pairs
-                    .flat_map(|arguments| {
-                        arguments
-                            .into_inner()
-                            .map(|pair| variable_or_literal_or_expression(pair))
-                            .map(|(range, expression)| (range, Box::new(expression)))
-                            .collect::<Vec<_>>()
-                    })
-                    .collect::<Vec<_>>();
-
-                (
-                    pair.clone().into(),
-                    ExpressionKind::CallExpressionKind(
-                        pair.clone().into(),
-                        CallExpression {
-                            callee: (callee.0, Box::new(callee.1)),
-                            arguments,
-                        },
-                    ),
-                )
-            }
-
+            Rule::function_call => function_call_to_ast(pair),
+            Rule::variable => variable_to_ast(pair),
             Rule::identifier => (
                 pair.clone().into(),
                 ExpressionKind::IdentifierKind(

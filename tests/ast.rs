@@ -9,11 +9,14 @@ mod formula_parse_ast {
         // let code = "2!";
         // let code = "a()";
         // let code = "a.b";
-        let code = "a.b.c.d(1)";
+        // let code = "a.b.c.d(1)";
         // let code = "a(1)";
         // let code = "a('1')";
         // let code = "a(1,2,3,'4')";
-        // let code = "a(1,2, 3+4,-2,'4' + '4',a)";
+        // let code = "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))";
+        // let code = "a.b.c(1,2, 3+4,-2,'4' + '4',a)";
+        // let code = "a(a())";
+        let code = "a(b(c(d(1))))";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
         let (_, ast) = to_ast(formula.paris);

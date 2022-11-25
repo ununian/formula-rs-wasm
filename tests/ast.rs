@@ -231,7 +231,7 @@ mod formula_parse_ast {
                                     Identifier a
                                 operator +
                                 right
-                                    NumberLiteral (2)
+                                    NumberLiteral (1)
                             BinaryExpression
                                 left
                                     Identifier a

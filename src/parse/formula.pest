@@ -1,7 +1,9 @@
 WHITESPACE = _{ " " | "\t" }
 
-// literal 字面量
+type_kw = { "type" }
+keywords = _{ type_kw }
 
+// literal 字面量
 // 数字 不区分整数和浮点数，实际计算时用实数（2个 i64组成）计算，无理数感觉没必要支持，用相近的有理数表示就行
 int = { ("+" | "-")? ~ ASCII_DIGIT+ } // 整数
 num = @{ int ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ int)? }
@@ -12,7 +14,7 @@ string = @{ ("\"" ~ (!("\"") ~ ANY)* ~ "\"")  | ("'" ~ (!("'") ~ ANY)* ~ "'") }
 literal = { num | string }
 
 // 标志符，这里允许中文（合法 Unicode 字母），但是不允许数字开头
-identifier = @{ (LETTER | "$" | "_") ~ (LETTER | "$" | "_" | ASCII_DIGIT)* }
+identifier = @{ !keywords ~ (LETTER | "$" | "_") ~ (LETTER | "$" | "_" | ASCII_DIGIT)* }
 
 // 比较运算符
 compare     = _{ compare_eq | compare_ne | compare_ge | compare_le | compare_lt | compare_gt  }
@@ -61,7 +63,10 @@ expr = _{
   operation_expr 
 }
 
-statement = { (expr+ | atom) }
+types =  { "Number" | "String" }
+type_def = { type_kw ~ identifier ~ "=" ~ types }
+
+statement = {  expr | atom | type_def  }
 statements = _{ statement ~ ((";" ~ NEWLINE* ~ statement*)*) }
 
 formula = _{ SOI ~ statements ~ EOI }

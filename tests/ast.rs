@@ -136,25 +136,33 @@ mod formula_parse_ast {
                             NumberLiteral (2)"#]],
         );
 
-        check_ast("a()", expect![[r#"
+        check_ast(
+            "a()",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     CallExpression
                         callee
                             Identifier a
                         arguments
-                            (EMPTY)"#]]);
+                            (EMPTY)"#]],
+        );
 
-        check_ast("a.b", expect![[r#"
+        check_ast(
+            "a.b",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     PropertyAccessExpression
                         object
                             Identifier a
                         property
-                            Identifier a"#]]);
+                            Identifier a"#]],
+        );
 
-        check_ast("a.b.c.d(1)", expect![[r#"
+        check_ast(
+            "a.b.c.d(1)",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     CallExpression
@@ -173,18 +181,24 @@ mod formula_parse_ast {
                                 property
                                     Identifier d
                         arguments
-                            NumberLiteral (1)"#]]);
+                            NumberLiteral (1)"#]],
+        );
 
-        check_ast("a('1')", expect![[r#"
+        check_ast(
+            "a('1')",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     CallExpression
                         callee
                             Identifier a
                         arguments
-                            StringLiteral ('1')"#]]);
+                            StringLiteral ('1')"#]],
+        );
 
-        check_ast("a(1,2,3,'4')", expect![[r#"
+        check_ast(
+            "a(1,2,3,'4')",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     CallExpression
@@ -194,9 +208,12 @@ mod formula_parse_ast {
                             NumberLiteral (1)
                             NumberLiteral (2)
                             NumberLiteral (3)
-                            StringLiteral ('4')"#]]);
+                            StringLiteral ('4')"#]],
+        );
 
-        check_ast("a.b.c(1,2, 3+4,-2,'4' + '4',a + 1, a> 2)", expect![[r#"
+        check_ast(
+            "a.b.c(1,2, 3+4,-2,'4' + '4',a + 1, a> 2)",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     CallExpression
@@ -237,9 +254,12 @@ mod formula_parse_ast {
                                     Identifier a
                                 operator >
                                 right
-                                    NumberLiteral (2)"#]]);
+                                    NumberLiteral (2)"#]],
+        );
 
-        check_ast("2 > 1", expect![[r#"
+        check_ast(
+            "2 > 1",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     BinaryExpression
@@ -247,9 +267,12 @@ mod formula_parse_ast {
                             NumberLiteral (2)
                         operator >
                         right
-                            NumberLiteral (1)"#]]);
+                            NumberLiteral (1)"#]],
+        );
 
-        check_ast("a > b", expect![[r#"
+        check_ast(
+            "a > b",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     BinaryExpression
@@ -257,9 +280,12 @@ mod formula_parse_ast {
                             Identifier a
                         operator >
                         right
-                            Identifier b"#]]);
-        
-        check_ast("a(b(c(d(1))))", expect![[r#"
+                            Identifier b"#]],
+        );
+
+        check_ast(
+            "a(b(c(d(1))))",
+            expect![[r#"
             FormulaBody
                 ExpressionStatement
                     CallExpression
@@ -278,6 +304,24 @@ mod formula_parse_ast {
                                                 callee
                                                     Identifier d
                                                 arguments
-                                                    NumberLiteral (1)"#]]);
+                                                    NumberLiteral (1)"#]],
+        );
+
+        check_ast("1+1;2+1", expect![[r#"
+        FormulaBody
+            ExpressionStatement
+                BinaryExpression
+                    left
+                        NumberLiteral (1)
+                    operator +
+                    right
+                        NumberLiteral (1)
+            ExpressionStatement
+                BinaryExpression
+                    left
+                        NumberLiteral (2)
+                    operator +
+                    right
+                        NumberLiteral (1)"#]]);
     }
 }

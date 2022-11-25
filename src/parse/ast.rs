@@ -99,10 +99,22 @@ lazy_static::lazy_static! {
         use Rule::*;
 
         PrattParser::new()
+            // 比较运算
+            .op(
+                Op::infix(compare_eq, Left)     |
+                Op::infix(compare_ne, Left)     |
+                Op::infix(compare_ge, Left)     |
+                Op::infix(compare_le, Left)     |
+                Op::infix(compare_lt , Left)    |
+                Op::infix(compare_gt, Left)
+            )
+
+            // 四则运算
             .op(Op::infix(add, Left) | Op::infix(subtract, Left))
             .op(Op::infix(multiply, Left) | Op::infix(divide, Left))
             .op(Op::infix(modulus, Left))
             .op(Op::infix(power, Right))
+
             .op(Op::postfix(Rule::fac))
             .op(Op::postfix(Rule::dot))
             .op(Op::postfix(EOI))
@@ -298,6 +310,10 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
             ),
 
             Rule::operation_expr => {
+                let inner = pair.into_inner();
+                expression_to_ast(inner)
+            }
+            Rule::compare_expr => {
                 let inner = pair.into_inner();
                 expression_to_ast(inner)
             }

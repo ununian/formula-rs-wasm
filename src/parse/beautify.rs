@@ -13,7 +13,7 @@ pub trait Beautify {
 fn indent(level: usize, str: String) -> String {
     let mut indent = String::new();
     for _ in 0..level {
-        indent.push_str("  ");
+        indent.push_str("    ");
     }
     indent.push_str(str.as_str());
     indent
@@ -48,7 +48,7 @@ impl Beautify for UnaryExpression {
         indent(
             level,
             format!(
-                "UnaryExpression \n{}operator {}\n{}argument\n{}",
+                "UnaryExpression\n{}operator {}\n{}argument\n{}",
                 indent(level + 1, "".to_string()),
                 self.operator.1,
                 indent(level + 1, "".to_string()),

@@ -33,6 +33,7 @@ lazy_static = "1.4.0"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
+expect-test = "1.4"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

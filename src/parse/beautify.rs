@@ -126,6 +126,39 @@ impl Beautify for Identifier {
     }
 }
 
+impl Beautify for TypeItem {
+    fn beautify(&self, _: usize) -> String {
+        format!(
+            "{}{}",
+            self.ident.1.name,
+            match self.parameters.len() {
+                0 => "".to_string(),
+                _ => format!(
+                    "<{}>",
+                    self.parameters
+                        .iter()
+                        .map(|param| param.1.beautify(0))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                ),
+            }
+        )
+    }
+}
+
+impl Beautify for TypeDefine {
+    fn beautify(&self, level: usize) -> String {
+        indent(
+            level,
+            format!(
+                "TypeDefine {} is {}",
+                self.ident.1.name,
+                self.type_item.1.beautify(0)
+            ),
+        )
+    }
+}
+
 impl Beautify for ExpressionKind {
     fn beautify(&self, level: usize) -> String {
         match self {
@@ -144,6 +177,7 @@ impl Beautify for ExpressionKind {
             ExpressionKind::StringLiteralKind(_, string_literal) => string_literal.beautify(level),
             ExpressionKind::NumberLiteralKind(_, number_literal) => number_literal.beautify(level),
             ExpressionKind::IdentifierKind(_, identifier) => identifier.beautify(level),
+            ExpressionKind::TypeDefineKind(_, type_define) => type_define.beautify(level),
         }
     }
 }

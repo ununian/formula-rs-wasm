@@ -38,7 +38,7 @@ mod formula_parse_ast {
         // let code = "a(a())";
         // let code = "a(b(c(d(1))))";
         // let code = "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))";
-        let code = "1";
+        let code = "type a = { a: Number };";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
         let (_, ast) = to_ast(formula.paris);

@@ -1,7 +1,8 @@
-WHITESPACE = _{ " " | "\t" }
+WHITESPACE = _{ " " | "\t" | "\n" }
 
+func_kw = { "func" }
 type_kw = { "type" }
-keywords = _{ type_kw }
+keywords = _{ type_kw | func_kw }
 
 // literal 字面量
 // 数字 不区分整数和浮点数，实际计算时用实数（2个 i64组成）计算，无理数感觉没必要支持，用相近的有理数表示就行
@@ -43,7 +44,7 @@ dot = { "." ~ identifier } // DOT 运算符，用来访问对象的属性、函�
 variable = { (identifier ~ dot*) | ("(" ~ identifier ~ dot* ~ ")") }
 
 function_argument = { expr | atom }
-function_call = { variable ~ "(" ~ (function_argument ~ ("," ~ function_argument)*)* ~ ")" }
+function_call = { variable ~ "(" ~ (function_argument ~ ("," ~ function_argument)*)? ~ ")" }
 
 
 // 能使用运算符的原子单元
@@ -63,10 +64,24 @@ expr = _{
   operation_expr 
 }
 
-types =  { "Number" | "String" }
-type_def = { type_kw ~ identifier ~ "=" ~ types }
+type_object_key = @{ identifier }
+type_object_value = _{ type_item }
+type_object_record = { type_object_key ~ ":" ~  type_object_value }
+type_object = { "{" ~ (type_object_record ~ ("," ~ type_object_record)*)? ~ "}" }
 
-statement = {  expr | atom | type_def  }
+type_parameters = { "<" ~ type_item ~ ("," ~ type_item)* ~ ">" }
+type_name = @{ identifier }
+type_item =  { (type_name ~ type_parameters?) | type_object }
+
+type_def = { type_kw ~ identifier ~ "=" ~ type_item }
+
+func_def_argument = { type_item }
+func_def_return = { type_item }
+func_def = { func_kw ~ identifier ~ "(" ~ (func_def_argument ~ ("," ~ func_def_argument)*)?  ~ ")" ~ "->" ~ func_def_return }
+
+defs = _{ type_def | func_def }
+
+statement = {  expr | atom | defs }
 statements = _{ statement ~ ((";" ~ NEWLINE* ~ statement*)*) }
 
 formula = _{ SOI ~ statements ~ EOI }

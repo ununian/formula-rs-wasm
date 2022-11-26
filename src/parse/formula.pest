@@ -64,14 +64,15 @@ expr = _{
   operation_expr 
 }
 
-type_object_key = @{ identifier }
-type_object_value = _{ type_item }
-type_object_record = { type_object_key ~ ":" ~  type_object_value }
-type_object = { "{" ~ (type_object_record ~ ("," ~ type_object_record)*)? ~ "}" }
+type_record_type_key = @{ identifier }
+type_record_type_value = _{ type_item }
+type_record_type_item = { type_record_type_key ~ ":" ~  type_record_type_value }
+type_record_type = { "{" ~ (type_record_type_item ~ ("," ~ type_record_type_item)*)? ~ "}" }
 
 type_parameters = { "<" ~ type_item ~ ("," ~ type_item)* ~ ">" }
 type_name = @{ identifier }
-type_item =  { (type_name ~ type_parameters?) | type_object }
+type_named_type = { type_name ~ type_parameters? }
+type_item =  { type_named_type | type_record_type }
 
 type_def = { type_kw ~ identifier ~ "=" ~ type_item }
 

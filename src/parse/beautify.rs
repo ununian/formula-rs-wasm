@@ -4,7 +4,10 @@ use alloc::{
     vec::Vec,
 };
 
-use super::ast::*;
+use super::{
+    ast::*,
+    type_ast::{NamedType, RecordType, TypeDefine, TypeItemKind},
+};
 
 pub trait Beautify {
     fn beautify(&self, level: usize) -> String;
@@ -126,7 +129,7 @@ impl Beautify for Identifier {
     }
 }
 
-impl Beautify for TypeItem {
+impl Beautify for NamedType {
     fn beautify(&self, _: usize) -> String {
         format!(
             "{}{}",
@@ -142,6 +145,31 @@ impl Beautify for TypeItem {
                         .join(", ")
                 ),
             }
+        )
+    }
+}
+
+impl Beautify for RecordType {
+    fn beautify(&self, _: usize) -> String {
+        format!(
+            "{{ {} }}",
+            self.fields
+                .iter()
+                .map(|(_, field)| format!("{}: {}", field.key.1.name, field.value.1.beautify(0)))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
+}
+
+impl Beautify for TypeItemKind {
+    fn beautify(&self, level: usize) -> String {
+        indent(
+            level,
+            match self {
+                TypeItemKind::NamedTypeKind(named_type) => named_type.beautify(0),
+                TypeItemKind::RecordTypeKind(record_type) => record_type.beautify(0),
+            },
         )
     }
 }

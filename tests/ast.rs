@@ -38,7 +38,8 @@ mod formula_parse_ast {
         // let code = "a(a())";
         // let code = "a(b(c(d(1))))";
         // let code = "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))";
-        let code = "type a = { a: Number };";
+        let code = "type NewType = { a: Number, b: Array<Number>, c: { d: { e: Bool } } };";
+        // let code = "type a = Number;";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
         let (_, ast) = to_ast(formula.paris);
@@ -307,7 +308,9 @@ mod formula_parse_ast {
                                                     NumberLiteral (1)"#]],
         );
 
-        check_ast("1+1;2+1", expect![[r#"
+        check_ast(
+            "1+1;2+1",
+            expect![[r#"
         FormulaBody
             ExpressionStatement
                 BinaryExpression
@@ -322,6 +325,15 @@ mod formula_parse_ast {
                         NumberLiteral (2)
                     operator +
                     right
-                        NumberLiteral (1)"#]]);
+                        NumberLiteral (1)"#]],
+        );
+
+        check_ast(
+            "type NewType = { a: Number, b: Array<Number>, c: { d: { e: Bool } } };",
+            expect![[r#"
+            FormulaBody
+                ExpressionStatement
+                    TypeDefine NewType is { a: Number, b: Array<Number>, c: { d: { e: Bool } } }"#]],
+        );
     }
 }

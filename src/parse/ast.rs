@@ -1,10 +1,12 @@
 use core::str::FromStr;
 
-use super::parse::Rule;
+use super::{
+    parse::Rule,
+    type_ast::{type_def_to_ast, TypeDefine},
+};
 use alloc::{
     boxed::Box,
     string::{String, ToString},
-    vec,
     vec::Vec,
 };
 use num::Rational64;
@@ -97,40 +99,6 @@ pub struct NumberLiteral {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Identifier {
     pub name: String,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct TypeName {
-    pub name: String,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct TypeDefine {
-    pub ident: (Range, Identifier),
-    pub type_item: (Range, TypeItemKind),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum TypeItemKind {
-    TypeNamedKind(Range, NamedType),   // 具名类型
-    TypeDefineKind(Range, RecordType), // 键值对类型
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct RecordTypeField {
-    pub key: (Range, Identifier),
-    pub value: (Range, TypeItemKind),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct RecordType {
-    pub fields: Vec<(Range, RecordTypeField)>,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct NamedType {
-    pub ident: (Range, TypeName),
-    pub parameters: Vec<(Range, TypeItemKind)>,
 }
 
 lazy_static::lazy_static! {
@@ -328,105 +296,6 @@ fn function_call_to_ast(pair: Pair<Rule>) -> ExpressionAstItem {
             CallExpression {
                 callee: (callee.0, Box::new(callee.1)),
                 arguments,
-            },
-        ),
-    )
-}
-
-fn type_item_to_ast(pair: Pair<Rule>) -> (Range, TypeItem) {
-    let range = Range::from(pair.clone());
-    let mut inner = pair.into_inner();
-
-    // panic!(
-    //     "type_item_to_ast: {:?}",
-    //     inner.clone().map(|f| f.as_rule()).collect::<Vec<_>>()
-    // );
-
-    // panic!(
-    //     "type_item_to_ast: {:?}",
-    //     inner.clone().map(|f| f.as_str()).collect::<Vec<_>>()
-    // );
-
-    let ident = match inner.next() {
-        Some(pair) => match pair.as_rule() {
-            Rule::type_name => (
-                pair.clone().into(),
-                TypeName {
-                    name: pair.as_str().to_string(),
-                },
-            ),
-            _ => unreachable!(),
-        },
-        None => panic!("type_item_to_ast: inner.next() == None"),
-    };
-
-    let parameters = match inner.next() {
-        Some(pair) => match pair.as_rule() {
-            Rule::type_parameters => pair
-                .into_inner()
-                .map(|pair| type_item_to_ast(pair))
-                .collect::<Vec<_>>(),
-            _ => unreachable!(),
-        },
-        None => vec![],
-    };
-
-    (range, TypeItem { ident, parameters })
-}
-
-fn type_def_to_ast(pair: Pair<Rule>) -> ExpressionAstItem {
-    let mut pairs = pair.clone().into_inner();
-
-    match pairs.next() {
-        Some(kw) => {
-            if kw.as_str() != "type" {
-                panic!(
-                    "type_def_to_ast: keyword error, expected 'type', got '{}'",
-                    kw.as_str()
-                );
-            }
-        }
-        None => panic!("type_def_to_ast: no keyword"),
-    }
-
-    let identifier = match pairs.next() {
-        Some(ident) => {
-            if ident.as_rule() != Rule::identifier {
-                panic!(
-                    "type_def_to_ast: identifier error, expected identifier, got '{}'",
-                    ident.as_str()
-                );
-            }
-            (
-                ident.clone().into(),
-                Identifier {
-                    name: ident.as_str().to_string(),
-                },
-            )
-        }
-        None => panic!("type_def_to_ast: no identifier"),
-    };
-
-    let type_item = match pairs.next() {
-        Some(item) => {
-            if item.as_rule() != Rule::type_item {
-                panic!(
-                    "type_def_to_ast: type error, expected type, got '{}'",
-                    item.as_str()
-                );
-            }
-            type_item_to_ast(item)
-        }
-        None => panic!("type_def_to_ast: no type"),
-    };
-
-    ExpressionAstItem(
-        pair.clone().into(),
-        ExpressionKind::TypeDefineKind(
-            pair.clone().into(),
-            TypeDefine {
-                ident: identifier,
-                type_item,
             },
         ),
     )

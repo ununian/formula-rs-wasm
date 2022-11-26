@@ -40,13 +40,16 @@ pub enum ExpressionKind {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub struct ExpressionAstItem(Range, ExpressionKind);
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct FormulaBody {
     pub body: Vec<(Range, ExpressionStatement)>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ExpressionStatement {
-    pub expression: (Range, ExpressionKind),
+    pub expression: ExpressionAstItem,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -121,8 +124,8 @@ lazy_static::lazy_static! {
     };
 }
 
-pub fn variable_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
-    fn dot_to_property_access(pairs: &[Pair<Rule>]) -> (Range, ExpressionKind) {
+pub fn variable_to_ast(pair: Pair<Rule>) -> ExpressionAstItem {
+    fn dot_to_property_access(pairs: &[Pair<Rule>]) -> ExpressionAstItem {
         if pairs.len() == 0 {
             unreachable!("dot_to_property_access: pairs.len() == 0");
         } else {
@@ -133,7 +136,7 @@ pub fn variable_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
                     let identifier = Identifier {
                         name: pairs[0].as_str().to_string(),
                     };
-                    return (
+                    return ExpressionAstItem(
                         range.clone(),
                         ExpressionKind::IdentifierKind(range, identifier),
                     );
@@ -158,7 +161,7 @@ pub fn variable_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
                     }
                     _ => unreachable!("dot_to_property_access: pairs[0].into_inner().next().unwrap().as_rule() != Rule::identifier"),
                 };
-                return (
+                return ExpressionAstItem(
                     range.clone(),
                     ExpressionKind::PropertyAccessExpressionKind(
                         range,
@@ -186,7 +189,7 @@ pub fn variable_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
                 let identifier = Identifier {
                     name: pair.as_str().to_string(),
                 };
-                (
+                ExpressionAstItem(
                     range.clone(),
                     ExpressionKind::IdentifierKind(range, identifier),
                 )
@@ -202,7 +205,7 @@ pub fn variable_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
     }
 }
 
-pub fn literal_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
+pub fn literal_to_ast(pair: Pair<Rule>) -> ExpressionAstItem {
     let range = Range::from(pair.clone());
 
     let mut inner = pair.into_inner();
@@ -211,14 +214,14 @@ pub fn literal_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
         Rule::num => {
             let raw = first.as_str().to_string();
             let value = Rational64::from_str(&raw).unwrap();
-            (
+            ExpressionAstItem(
                 range.clone(),
                 ExpressionKind::NumberLiteralKind(range, NumberLiteral { value, raw }),
             )
         }
         Rule::string => {
             let raw = first.as_str();
-            (
+            ExpressionAstItem(
                 range.clone(),
                 ExpressionKind::StringLiteralKind(
                     range,
@@ -233,7 +236,7 @@ pub fn literal_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
     }
 }
 
-pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
+pub fn variable_or_expression(pair: Pair<Rule>) -> ExpressionAstItem {
     let _rule = pair.as_rule();
     let _txt = pair.as_str();
     match pair.as_rule() {
@@ -245,7 +248,7 @@ pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
             let identifier = Identifier {
                 name: pair.as_str().to_string(),
             };
-            (
+            ExpressionAstItem(
                 pair.clone().into(),
                 ExpressionKind::IdentifierKind(pair.clone().into(), identifier),
             )
@@ -255,14 +258,14 @@ pub fn variable_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
     }
 }
 
-pub fn variable_or_literal_or_expression(pair: Pair<Rule>) -> (Range, ExpressionKind) {
+pub fn variable_or_literal_or_expression(pair: Pair<Rule>) -> ExpressionAstItem {
     match pair.as_rule() {
         Rule::literal => literal_to_ast(pair),
         _ => variable_or_expression(pair),
     }
 }
 
-fn function_call_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
+fn function_call_to_ast(pair: Pair<Rule>) -> ExpressionAstItem {
     let mut pairs = pair.clone().into_inner();
 
     let callee = pairs.next().unwrap();
@@ -276,12 +279,12 @@ fn function_call_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
             arguments
                 .into_inner()
                 .map(|pair| variable_or_literal_or_expression(pair))
-                .map(|(range, expression)| (range, Box::new(expression)))
+                .map(|ExpressionAstItem(range, expression)| (range, Box::new(expression)))
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
 
-    (
+    ExpressionAstItem(
         pair.clone().into(),
         ExpressionKind::CallExpressionKind(
             pair.clone().into(),
@@ -293,13 +296,13 @@ fn function_call_to_ast(pair: Pair<Rule>) -> (Range, ExpressionKind) {
     )
 }
 
-pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
+pub fn expression_to_ast(paris: Pairs<Rule>) -> ExpressionAstItem {
     TYPE_PRATT_PARSER
         .map_primary(|pair| match pair.as_rule() {
             Rule::literal => literal_to_ast(pair),
             Rule::function_call => function_call_to_ast(pair),
             Rule::variable => variable_to_ast(pair),
-            Rule::identifier => (
+            Rule::identifier => ExpressionAstItem(
                 pair.clone().into(),
                 ExpressionKind::IdentifierKind(
                     pair.clone().into(),
@@ -325,7 +328,7 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
             ),
         })
         .map_infix(|lhs, op, rhs| {
-            (
+            ExpressionAstItem(
                 Range(lhs.0 .0, rhs.0 .1),
                 ExpressionKind::BinaryExpressionKind(
                     Range(lhs.0 .0, rhs.0 .1),
@@ -341,7 +344,7 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
             Rule::EOI => lhs,
             Rule::fac => {
                 let range = Range(lhs.0 .0, op.as_span().end());
-                (
+                ExpressionAstItem(
                     range.clone(),
                     ExpressionKind::UnaryExpressionKind(
                         range,
@@ -355,8 +358,8 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> (Range, ExpressionKind) {
             }
             Rule::dot => {
                 let inner = op.into_inner();
-                let (range, _) = expression_to_ast(inner);
-                (
+                let ExpressionAstItem(range, _) = expression_to_ast(inner);
+                ExpressionAstItem(
                     Range(lhs.0 .0, range.1),
                     ExpressionKind::PropertyAccessExpressionKind(
                         Range(lhs.0 .0, range.1),

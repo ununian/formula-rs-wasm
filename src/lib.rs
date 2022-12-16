@@ -8,6 +8,7 @@ use alloc::string::String;
 extern crate pest_derive;
 
 pub mod parse;
+pub mod vm;
 pub mod types;
 pub mod execute;
 mod utils;

@@ -50,12 +50,12 @@ mod formula_parse_ast {
     #[test]
     fn ast_test() {
         check_ast(
-            "1",
+            "1.2",
             expect![
                 r#"
             FormulaBody
                 ExpressionStatement
-                    NumberLiteral (1)"#
+                    NumberLiteral (6/5)"#
             ],
         );
 

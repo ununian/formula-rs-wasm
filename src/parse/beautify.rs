@@ -121,6 +121,13 @@ impl Beautify for StringLiteral {
 impl Beautify for NumberLiteral {
     fn beautify(&self, level: usize) -> String {
         indent(level, format!("NumberLiteral ({})", self.value))
+
+        // 现在 1.2 会输出 6 / 5，而不是 1.2
+        // if self.value.is_integer() {
+        //     indent(level, format!("NumberLiteral ({})", self.value))
+        // } else {
+        //     indent(level, format!("NumberLiteral ({})", *self.value.numer() as f64 / *self.value.denom() as f64))
+        // }
     }
 }
 impl Beautify for Identifier {

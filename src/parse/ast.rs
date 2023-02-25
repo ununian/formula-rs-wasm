@@ -9,7 +9,7 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use num::Rational64;
+use num::{FromPrimitive, Rational64};
 use pest::{
     iterators::{Pair, Pairs},
     pratt_parser::PrattParser,
@@ -218,7 +218,12 @@ pub fn literal_to_ast(pair: Pair<Rule>) -> ExpressionAstItem {
     match first.as_rule() {
         Rule::num => {
             let raw = first.as_str().to_string();
-            let value = Rational64::from_str(&raw).unwrap();
+
+            let value = match raw.contains(".") {
+                true => Rational64::from_f64(raw.parse().unwrap()).unwrap(),
+                false => Rational64::from_str(&raw).unwrap(),
+            };
+
             ExpressionAstItem(
                 range.clone(),
                 ExpressionKind::NumberLiteralKind(range, NumberLiteral { value, raw }),

@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod formula_parse_ast {
     use expect_test::{expect, Expect};
+    use formula_rs_wasm::share::operator::OperatorCode;
     use formula_rs_wasm::parse::beautify::Beautify;
+    use formula_rs_wasm::parse::to_operator::ToOperator;
     use formula_rs_wasm::parse::{ast::to_ast, parse::Formula};
 
     fn check_ast(expr: &str, expected: Expect) {
@@ -25,7 +27,7 @@ mod formula_parse_ast {
 
     #[test]
     fn ast_demo() {
-        // let code = "1 + 1 * 3";
+        let code = "(1 + 1) * 3";
         // let code = "2!";
         // let code = "a()";
         // let code = "a.b";
@@ -38,7 +40,7 @@ mod formula_parse_ast {
         // let code = "a(a())";
         // let code = "a(b(c(d(1))))";
         // let code = "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))";
-        let code = "type NewType = { a: Number, b: Array<Number>, c: { d: { e: Bool } } };";
+        // let code = "type NewType = { a: Number, b: Array<Number>, c: { d: { e: Bool } } };";
         // let code = "type a = Number;";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
@@ -76,6 +78,26 @@ mod formula_parse_ast {
                                     operator *
                                     right
                                         NumberLiteral (3)"#
+            ],
+        );
+
+        check_ast(
+            "(1 + 1) * 3",
+            expect![
+                r#"
+                FormulaBody
+                    ExpressionStatement
+                        BinaryExpression
+                            left
+                                BinaryExpression
+                                    left
+                                        NumberLiteral (1)
+                                    operator +
+                                    right
+                                        NumberLiteral (1)
+                            operator *
+                            right
+                                NumberLiteral (3)"#
             ],
         );
 
@@ -334,6 +356,89 @@ mod formula_parse_ast {
             FormulaBody
                 ExpressionStatement
                     TypeDefine NewType is { a: Number, b: Array<Number>, c: { d: { e: Bool } } }"#]],
+        );
+    }
+
+    #[test]
+    fn ast_to_operator() {
+        fn check(expr: &str, result: Vec<OperatorCode>) {
+            let formula = Formula::parse(expr).unwrap();
+            let (_, ast) = to_ast(formula.paris);
+
+            let operators = ast.to_operator();
+            assert_eq!(operators, result);
+        }
+
+        check(
+            "5!",
+            vec![OperatorCode::PushNumber(5.into()), OperatorCode::Factorial],
+        );
+
+        check(
+            "1 + 3",
+            vec![
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::PushNumber(3.into()),
+                OperatorCode::Add,
+            ],
+        );
+
+        check(
+            "1 + 3 * 5",
+            vec![
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::PushNumber(3.into()),
+                OperatorCode::PushNumber(5.into()),
+                OperatorCode::Multiply,
+                OperatorCode::Add,
+            ],
+        );
+
+        check(
+            "(1 + 3) * 5",
+            vec![
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::PushNumber(3.into()),
+                OperatorCode::Add,
+                OperatorCode::PushNumber(5.into()),
+                OperatorCode::Multiply,
+            ],
+        );
+
+        check(
+            "1 - 1",
+            vec![
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::Subtract,
+            ],
+        );
+
+        check(
+            "a - 1",
+            vec![
+                OperatorCode::LoadIdentifier("a"),
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::Subtract,
+            ],
+        );
+
+        check(
+            "a - b",
+            vec![
+                OperatorCode::LoadIdentifier("a"),
+                OperatorCode::LoadIdentifier("b"),
+                OperatorCode::Subtract,
+            ],
+        );
+
+        check(
+            "a - '123'",
+            vec![
+                OperatorCode::LoadIdentifier("a"),
+                OperatorCode::PushString("123"),
+                OperatorCode::Subtract,
+            ],
         );
     }
 }

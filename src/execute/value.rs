@@ -160,11 +160,11 @@ impl FormulaValue {
         }
     }
 
-    pub fn rem(self, _rhs: FormulaValue) -> FormulaValue {
+    pub fn modulo(self, _rhs: FormulaValue) -> FormulaValue {
         match (&self, &_rhs) {
             (FormulaValue::Number(a), FormulaValue::Number(b)) => FormulaValue::Number(a % b),
             _ => FormulaValue::Error(ExecuteError::operator_mismatch(
-                FormulaOperator::Rem,
+                FormulaOperator::Modulo,
                 self.into(),
                 Some(_rhs.into()),
             )),

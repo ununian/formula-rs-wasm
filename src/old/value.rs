@@ -85,7 +85,7 @@ impl ExpValue {
         return ExpValue::Error;
     }
 
-    pub fn rem(self, _rhs: ExpValue) -> ExpValue {
+    pub fn modulo(self, _rhs: ExpValue) -> ExpValue {
         if let ExpValue::Number(a) = self {
             if let ExpValue::Number(b) = _rhs {
                 return ExpValue::Number(a % b);

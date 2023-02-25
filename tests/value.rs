@@ -301,17 +301,17 @@ mod formula_value {
     #[test]
     fn rem_success() {
         assert_eq!(
-            FormulaValue::Number(2.into()).rem(FormulaValue::Number(2.into())),
+            FormulaValue::Number(2.into()).modulo(FormulaValue::Number(2.into())),
             FormulaValue::Number(0.into())
         );
 
         assert_eq!(
-            FormulaValue::Number(2.into()).rem(FormulaValue::Number(3.into())),
+            FormulaValue::Number(2.into()).modulo(FormulaValue::Number(3.into())),
             FormulaValue::Number(2.into())
         );
 
         assert_eq!(
-            FormulaValue::Number(2.into()).rem(FormulaValue::Number(4.into())),
+            FormulaValue::Number(2.into()).modulo(FormulaValue::Number(4.into())),
             FormulaValue::Number(2.into())
         );
     }

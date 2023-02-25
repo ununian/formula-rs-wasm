@@ -96,7 +96,7 @@ pub fn eval(expression: Pairs<Rule>, table: &Value) -> ExpValue {
             Rule::multiply => lhs.mul(rhs),
             Rule::divide => lhs.div(rhs),
             Rule::power => lhs.powf(rhs),
-            Rule::modulus => lhs.rem(rhs),
+            Rule::modulus => lhs.modulo(rhs),
             rule => unreachable!("Expr::parse expected infix operation, found {:?}", rule),
         })
         .map_postfix(|lhs, op| match op.as_rule() {

@@ -60,11 +60,17 @@ impl Runnable for OperatorCode<'_> {
                 let rhs = stack.pop().unwrap();
                 let lhs = stack.pop().unwrap();
 
-                stack.push(lhs.rem(rhs));
+                stack.push(lhs.modulo(rhs));
             }
             OperatorCode::Factorial => {
                 let lhs = stack.pop().unwrap();
                 stack.push(lhs.factorial());
+            }
+            OperatorCode::Power => {
+                let rhs = stack.pop().unwrap();
+                let lhs = stack.pop().unwrap();
+
+                stack.push(lhs.pow(rhs));
             }
 
             OperatorCode::PushNumber(val) => {

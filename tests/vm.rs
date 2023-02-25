@@ -24,6 +24,8 @@ mod formula_parse_ast {
         check("1+1*5", Value::Number(6.into()));
         check("1-1*5", Value::Number((-4).into()));
         check("(1+1)*5", Value::Number(10.into()));
+        check("(1+1)%5", Value::Number(2.into()));
+        check("2^5", Value::Number(32.into()));
         check("5!", Value::Number(120.into()));
     }
 }

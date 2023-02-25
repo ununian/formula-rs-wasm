@@ -7,7 +7,7 @@ pub enum FormulaOperator {
     Div,
     Pow,
     Factorial,
-    Rem,
+    Modulo,
     Neg,
 
     // 逻辑计算

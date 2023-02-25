@@ -145,11 +145,11 @@ impl Value<'_> {
         }
     }
 
-    pub fn rem(self, _rhs: Value) -> Value {
+    pub fn modulo(self, _rhs: Value) -> Value {
         match (&self, &_rhs) {
             (Value::Number(a), Value::Number(b)) => Value::Number(a % b),
             _ => Value::Error(ExecuteError::operator_mismatch(
-                "FormulaOperator::Rem",
+                "FormulaOperator::Modulo",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
             )),

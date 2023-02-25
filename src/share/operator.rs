@@ -9,6 +9,7 @@ pub enum OperatorCode<'a> {
     Divide,
     Modulo,
     Factorial, // 阶乘
+    Power, // 阶乘
 
     // Push 常量入栈
     PushNumber(Rational64),

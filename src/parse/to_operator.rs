@@ -51,6 +51,7 @@ impl ToOperator for BinaryExpression {
             "*" => OperatorCode::Multiply,
             "/" => OperatorCode::Divide,
             "%" => OperatorCode::Modulo,
+            "^" => OperatorCode::Power,
             _ => unreachable!("unknown operator"),
         });
         result

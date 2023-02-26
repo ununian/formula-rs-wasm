@@ -1,16 +1,18 @@
 use core::fmt::Display;
 
-use alloc::{format, string::ToString};
+use alloc::{
+    format,
+    string::{String, ToString},
+};
 use num::{Rational64, ToPrimitive, Zero};
 
 use super::error::ExecuteError;
 
-#[derive(Clone, Debug, Copy, PartialEq)]
-pub enum Value<'a> {
-    Error(ExecuteError), // TODO DELETE
+#[derive(Clone, Debug, PartialEq)]
+pub enum Value {
     Bool(bool),
     Number(Rational64),
-    String(&'a str),
+    String(String),
     DateTime(u64),
     Duration(i64),
     // Array(Vec<Value>),
@@ -18,20 +20,24 @@ pub enum Value<'a> {
     // Function(Function),
 }
 
-impl Value<'_> {
-    pub fn add(self, _rhs: Value) -> Value {
-        match (self.clone(), _rhs.clone()) {
-            (Value::Number(a), Value::Number(b)) => Value::Number(a + b),
-            // (Value::String(a), Value::String(b)) => Value::String(format!("{}{}", a, b).as_str()),
+impl Value {
+    pub fn add(self, _rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &_rhs) {
+            (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a + b)),
+            (Value::String(a), Value::String(b)) => Ok(Value::String(a.clone() + &b)),
 
-            // (Value::Number(a), Value::String(b)) => Value::String(format!("{}{}", a, b).as_str()),
-            // (Value::String(a), Value::Number(b)) => Value::String(format!("{}{}", a, b).as_str()),
+            (Value::Number(a), Value::String(b)) => Ok(Value::String(a.to_string() + &b)),
+            (Value::String(a), Value::Number(b)) => Ok(Value::String(a.clone() + &b.to_string())),
 
-            (Value::DateTime(a), Value::Duration(b)) => Value::DateTime(a + b.to_u64().unwrap()),
-            (Value::Duration(a), Value::DateTime(b)) => Value::DateTime(a.to_u64().unwrap() + b),
-            (Value::Duration(a), Value::Duration(b)) => Value::Duration(a + b),
+            (Value::DateTime(a), Value::Duration(b)) => {
+                Ok(Value::DateTime(a + b.to_u64().unwrap()))
+            }
+            (Value::Duration(a), Value::DateTime(b)) => {
+                Ok(Value::DateTime(a.to_u64().unwrap() + b))
+            }
+            (Value::Duration(a), Value::Duration(b)) => Ok(Value::Duration(a + b)),
 
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            _ => Err(ExecuteError::operator_mismatch(
                 "+",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
@@ -39,13 +45,15 @@ impl Value<'_> {
         }
     }
 
-    pub fn sub(self, _rhs: Value) -> Value {
+    pub fn sub(self, _rhs: Value) -> Result<Value, ExecuteError> {
         match (&self, &_rhs) {
-            (Value::Number(a), Value::Number(b)) => Value::Number(a - b),
+            (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a - b)),
 
-            (Value::DateTime(a), Value::Duration(b)) => Value::DateTime(a - b.to_u64().unwrap()),
-            (Value::Duration(a), Value::Duration(b)) => Value::Duration(a - b),
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            (Value::DateTime(a), Value::Duration(b)) => {
+                Ok(Value::DateTime(a - b.to_u64().unwrap()))
+            }
+            (Value::Duration(a), Value::Duration(b)) => Ok(Value::Duration(a - b)),
+            _ => Err(ExecuteError::operator_mismatch(
                 "-",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
@@ -53,16 +61,16 @@ impl Value<'_> {
         }
     }
 
-    pub fn mul(self, _rhs: Value) -> Value {
+    pub fn mul(self, _rhs: Value) -> Result<Value, ExecuteError> {
         match (&self, &_rhs) {
-            (Value::Number(a), Value::Number(b)) => Value::Number(a * b),
-            (Value::Duration(a), Value::Number(b)) => Value::Duration(
+            (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a * b)),
+            (Value::Duration(a), Value::Number(b)) => Ok(Value::Duration(
                 (a.to_f64().unwrap() * b.to_f64().unwrap())
                     .floor()
                     .to_i64()
                     .unwrap(),
-            ),
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            )),
+            _ => Err(ExecuteError::operator_mismatch(
                 "*",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
@@ -70,30 +78,30 @@ impl Value<'_> {
         }
     }
 
-    pub fn div(self, _rhs: Value) -> Value {
+    pub fn div(self, _rhs: Value) -> Result<Value, ExecuteError> {
         match (&self, &_rhs) {
             (Value::Number(a), Value::Number(b)) => {
                 if b == &Rational64::zero() {
-                    Value::Error(ExecuteError::divide_by_zero())
+                    Err(ExecuteError::divide_by_zero())
                 } else {
-                    Value::Number(a / b)
+                    Ok(Value::Number(a / b))
                 }
             }
 
             (Value::Duration(a), Value::Number(b)) => {
                 if b == &Rational64::zero() {
-                    Value::Error(ExecuteError::divide_by_zero())
+                    Err(ExecuteError::divide_by_zero())
                 } else {
-                    Value::Duration(
+                    Ok(Value::Duration(
                         (a.to_f64().unwrap() / b.to_f64().unwrap())
                             .floor()
                             .to_i64()
                             .unwrap(),
-                    )
+                    ))
                 }
             }
 
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            _ => Err(ExecuteError::operator_mismatch(
                 "/",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
@@ -101,24 +109,24 @@ impl Value<'_> {
         }
     }
 
-    pub fn factorial(self) -> Value<'static> {
-        match self {
+    pub fn factorial(self) -> Result<Value, ExecuteError> {
+        match &self {
             Value::Number(a) => {
                 if a.is_integer() {
                     if a.lt(&Rational64::zero()) {
-                        return Value::Error(ExecuteError::factorial_not_negative());
+                        return Err(ExecuteError::factorial_not_negative());
                     }
 
                     let mut result = Rational64::from_integer(1);
                     for i in 1..a.to_i64().unwrap() + 1 {
                         result *= Rational64::from_integer(i);
                     }
-                    Value::Number(result)
+                    Ok(Value::Number(result))
                 } else {
-                    Value::Error(ExecuteError::factorial_not_integer())
+                    Err(ExecuteError::factorial_not_integer())
                 }
             }
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            _ => Err(ExecuteError::operator_mismatch(
                 "Factorial",
                 self.to_string().as_str(),
                 None,
@@ -126,18 +134,18 @@ impl Value<'_> {
         }
     }
 
-    pub fn pow(self, _rhs: Value) -> Value {
+    pub fn pow(self, _rhs: Value) -> Result<Value, ExecuteError> {
         match (&self, &_rhs) {
             (Value::Number(a), Value::Number(b)) => {
                 if !b.is_integer() {
-                    return Value::Error(ExecuteError::pow_not_rational());
+                    return Err(ExecuteError::pow_not_rational());
                 }
                 match b.to_i32() {
-                    Some(power) => Value::Number(a.pow(power)),
-                    None => Value::Error(ExecuteError::number_conversion_error()),
+                    Some(power) => Ok(Value::Number(a.pow(power))),
+                    None => Err(ExecuteError::number_conversion_error()),
                 }
             }
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            _ => Err(ExecuteError::operator_mismatch(
                 "Pow",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
@@ -145,10 +153,10 @@ impl Value<'_> {
         }
     }
 
-    pub fn modulo(self, _rhs: Value) -> Value {
+    pub fn modulo(self, _rhs: Value) -> Result<Value, ExecuteError> {
         match (&self, &_rhs) {
-            (Value::Number(a), Value::Number(b)) => Value::Number(a % b),
-            _ => Value::Error(ExecuteError::operator_mismatch(
+            (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a % b)),
+            _ => Err(ExecuteError::operator_mismatch(
                 "FormulaOperator::Modulo",
                 self.to_string().as_str(),
                 Some(self.to_string().as_str()),
@@ -157,10 +165,9 @@ impl Value<'_> {
     }
 }
 
-impl Display for Value<'_> {
+impl Display for Value {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Value::Error(err) => write!(f, "Error: {:?}", err),
             Value::Bool(b) => write!(f, "{}", b),
             Value::Number(n) => {
                 if n.is_integer() {

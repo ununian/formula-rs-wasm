@@ -1,9 +1,13 @@
-use alloc::format;
+use alloc::{format, string::String};
 
 // 数值相关错误
 #[derive(Clone, Debug, Copy, PartialEq)]
 pub enum ExecuteErrorType {
     UnknownError,
+
+    ResultCountMismatchError, // 结果数量不匹配
+    
+
 
     // 操作符错误
     OperatorMismatchError,
@@ -13,6 +17,8 @@ pub enum ExecuteErrorType {
     PowNotRational,
     FactorialNotInteger,
     FactorialNotNegative,
+
+    IdentifierNotFound
 }
 
 #[derive(Clone, Debug, Copy, PartialEq)]
@@ -67,5 +73,15 @@ impl ExecuteError {
 
     pub fn factorial_not_negative() -> Self {
         Self::new(ExecuteErrorType::FactorialNotNegative)
+    }
+
+    pub fn result_count_mismatch(actual: usize) -> Self {
+        Self::new(ExecuteErrorType::ResultCountMismatchError)
+            .with_message(&format!("result count expect 1, actual: {}", actual))
+    }
+
+    pub fn identifier_not_found(identifier: &String) -> Self {
+        Self::new(ExecuteErrorType::IdentifierNotFound)
+            .with_message(&format!("identifier not found: {}", identifier))
     }
 }

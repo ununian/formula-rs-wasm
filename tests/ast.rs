@@ -417,7 +417,7 @@ mod formula_parse_ast {
         check(
             "a - 1",
             vec![
-                OperatorCode::LoadIdentifier("a"),
+                OperatorCode::LoadIdentifier("a".to_string()),
                 OperatorCode::PushNumber(1.into()),
                 OperatorCode::Subtract,
             ],
@@ -426,8 +426,8 @@ mod formula_parse_ast {
         check(
             "a - b",
             vec![
-                OperatorCode::LoadIdentifier("a"),
-                OperatorCode::LoadIdentifier("b"),
+                OperatorCode::LoadIdentifier("a".to_string()),
+                OperatorCode::LoadIdentifier("b".to_string()),
                 OperatorCode::Subtract,
             ],
         );
@@ -435,8 +435,8 @@ mod formula_parse_ast {
         check(
             "a - '123'",
             vec![
-                OperatorCode::LoadIdentifier("a"),
-                OperatorCode::PushString("123"),
+                OperatorCode::LoadIdentifier("a".to_string()),
+                OperatorCode::PushString("123".to_string()),
                 OperatorCode::Subtract,
             ],
         );

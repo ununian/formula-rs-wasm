@@ -4,6 +4,7 @@ mod formula_parse_ast {
         parse::{ast::to_ast, parse::Formula, to_operator::ToOperator},
         vm::{runner::Runner, value::Value},
     };
+    use hashbrown::HashMap;
 
     #[test]
     fn vm_demo() {
@@ -13,7 +14,13 @@ mod formula_parse_ast {
             let operators = ast.to_operator();
 
             let runner = Runner;
-            let result = runner.run(operators);
+
+            let mut heap = HashMap::new();
+
+            heap.insert("a".to_string(), Value::Number(1.into()));
+            heap.insert("b".to_string(), Value::String("abc".to_string()));
+
+            let result = runner.run(operators, &mut heap);
 
             println!("{:?}", result);
 
@@ -27,5 +34,12 @@ mod formula_parse_ast {
         check("(1+1)%5", Value::Number(2.into()));
         check("2^5", Value::Number(32.into()));
         check("5!", Value::Number(120.into()));
+
+        check("'a' + 'b'", Value::String("ab".to_string()));
+        check("1 + 'b'", Value::String("1b".to_string()));
+        check("'a' + 1", Value::String("a1".to_string()));
+
+        check("a + 1", Value::Number(2.into()));
+        check("b + 1", Value::String("abc1".to_string()));
     }
 }

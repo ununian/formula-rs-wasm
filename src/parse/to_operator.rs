@@ -66,13 +66,13 @@ impl ToOperator for NumberLiteral {
 
 impl ToOperator for Identifier {
     fn to_operator(&self) -> Vec<OperatorCode> {
-        vec![OperatorCode::LoadIdentifier(self.name.as_str())]
+        vec![OperatorCode::LoadIdentifier(self.name.clone())]
     }
 }
 
 impl ToOperator for StringLiteral {
     fn to_operator(&self) -> Vec<OperatorCode> {
-        vec![OperatorCode::PushString(self.value.as_str())]
+        vec![OperatorCode::PushString(self.value.clone())]
     }
 }
 

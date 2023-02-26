@@ -27,8 +27,12 @@ wee_alloc = { version = "0.4.5", optional = true }
 pest = { version = "2.4", default-features = false }
 pest_derive = { version = "2.4", default-features = false }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-num = { version = "0.4.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
+num = { version = "0.4.0", default-features = false, features = ["alloc", "serde"] }
 lazy_static = "1.4.0"
+bincode = { version = "1.3.3" }
+hashbrown = "0.13"
+
 # chrono = { version = "0.4.0", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]

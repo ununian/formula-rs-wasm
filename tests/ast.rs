@@ -42,6 +42,7 @@ mod formula_parse_ast {
         // let code = "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))";
         // let code = "type NewType = { a: Number, b: Array<Number>, c: { d: { e: Bool } } };";
         // let code = "type a = Number;";
+        let code = "a(b, c == 2)";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
         let (_, ast) = to_ast(formula.paris);
@@ -78,6 +79,26 @@ mod formula_parse_ast {
                                     operator *
                                     right
                                         NumberLiteral (3)"#
+            ],
+        );
+
+        check_ast(
+            "sum(arr, point > 2)",
+            expect![
+                r#"
+                FormulaBody
+                    ExpressionStatement
+                        CallExpression
+                            callee
+                                Identifier sum
+                            arguments
+                                Identifier arr
+                                BinaryExpression
+                                    left
+                                        Identifier point
+                                    operator >
+                                    right
+                                        NumberLiteral (2)"#
             ],
         );
 
@@ -129,7 +150,7 @@ mod formula_parse_ast {
                                                             object
                                                                 Identifier $
                                                             property
-                                                                Identifier a
+                                                                Identifier updateTime
                                                     operator >
                                                     right
                                                         CallExpression
@@ -180,7 +201,7 @@ mod formula_parse_ast {
                         object
                             Identifier a
                         property
-                            Identifier a"#]],
+                            Identifier b"#]],
         );
 
         check_ast(
@@ -476,10 +497,20 @@ mod formula_parse_ast {
         );
 
         check(
-            "SUM(arr)",
+            "SUM(arr;)",
             vec![
                 OperatorCode::LoadIdentifier("SUM".to_string()),
                 OperatorCode::LoadIdentifier("arr".to_string()),
+                OperatorCode::Call(1),
+            ],
+        );
+
+        check(
+            "SUM(subtask.estimatePoint)",
+            vec![
+                OperatorCode::LoadIdentifier("SUM".to_string()),
+                OperatorCode::LoadIdentifier("subtask".to_string()),
+                OperatorCode::LoadPropertyAccess("estimatePoint".to_string()),
                 OperatorCode::Call(1),
             ],
         );

@@ -16,9 +16,10 @@ pub enum OperatorCode {
     // Push 立即数入栈
     PushNumber(Rational64),
     PushString(String),
-
-    // Load 标识符入栈
-    LoadIdentifier(String),
+    
+    // 入栈
+    LoadIdentifier(String), // Load 标识符
+    LoadPropertyAccess(String), // 用来访问对象的属性、函数等, 但是目前的含义是 map 功能，例如 subtask.estimatePoint -> subtask.map(task => task.estimatePoint)
 
     // func
     Call(u8),

@@ -264,7 +264,7 @@ pub fn variable_or_expression(pair: Pair<Rule>) -> ExpressionAstItem {
             )
         }
         Rule::function_call => function_call_to_ast(pair),
-        _ => unreachable!(),
+        _ => unreachable!("variable_or_expression: {:?}", pair),
     }
 }
 
@@ -339,17 +339,37 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> ExpressionAstItem {
             ),
         })
         .map_infix(|lhs, op, rhs| {
-            ExpressionAstItem(
-                Range(lhs.0 .0, rhs.0 .1),
-                ExpressionKind::BinaryExpressionKind(
+            match op.as_rule() {
+                Rule::compare_eq
+                | Rule::compare_ne
+                | Rule::compare_ge
+                | Rule::compare_le
+                | Rule::compare_lt
+                | Rule::compare_gt => {
+                    ExpressionAstItem(
+                        Range(lhs.0 .0, rhs.0 .1),
+                        ExpressionKind::BinaryExpressionKind(
+                            Range(lhs.0 .0, rhs.0 .1),
+                            BinaryExpression {
+                                left: (lhs.0, Box::new(lhs.1)),
+                                operator: (op.clone().into(), op.as_str().to_string()),
+                                right: (rhs.0, Box::new(rhs.1)),
+                            },
+                        ),
+                    )
+                }
+                _ => ExpressionAstItem(
                     Range(lhs.0 .0, rhs.0 .1),
-                    BinaryExpression {
-                        left: (lhs.0, Box::new(lhs.1)),
-                        operator: (op.clone().into(), op.as_str().to_string()),
-                        right: (rhs.0, Box::new(rhs.1)),
-                    },
+                    ExpressionKind::BinaryExpressionKind(
+                        Range(lhs.0 .0, rhs.0 .1),
+                        BinaryExpression {
+                            left: (lhs.0, Box::new(lhs.1)),
+                            operator: (op.clone().into(), op.as_str().to_string()),
+                            right: (rhs.0, Box::new(rhs.1)),
+                        },
+                    ),
                 ),
-            )
+            }
         })
         .map_postfix(|lhs, op| match op.as_rule() {
             Rule::EOI => lhs,
@@ -369,7 +389,12 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> ExpressionAstItem {
             }
             Rule::dot => {
                 let inner = op.into_inner();
-                let ExpressionAstItem(range, _) = expression_to_ast(inner);
+                let ExpressionAstItem(range, rhs) = expression_to_ast(inner);
+                let property = match rhs {
+                    ExpressionKind::IdentifierKind(_, identifier) => identifier,
+                    _ => unreachable!(),
+                };
+
                 ExpressionAstItem(
                     Range(lhs.0 .0, range.1),
                     ExpressionKind::PropertyAccessExpressionKind(
@@ -379,7 +404,7 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> ExpressionAstItem {
                             property: (
                                 range,
                                 Identifier {
-                                    name: "a".to_string(),
+                                    name: property.name,
                                 },
                             ),
                         },

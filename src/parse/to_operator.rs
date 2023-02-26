@@ -1,11 +1,8 @@
-use alloc::{
-    vec,
-    vec::Vec,
-};
+use alloc::{vec, vec::Vec};
 
 use super::ast::{
-    BinaryExpression, ExpressionKind, ExpressionStatement, FormulaBody, Identifier, NumberLiteral,
-    UnaryExpression, StringLiteral, CallExpression,
+    BinaryExpression, CallExpression, ExpressionKind, ExpressionStatement, FormulaBody, Identifier,
+    NumberLiteral, PropertyAccessExpression, StringLiteral, UnaryExpression,
 };
 use crate::share::operator::OperatorCode;
 
@@ -86,6 +83,14 @@ impl ToOperator for CallExpression {
     }
 }
 
+impl ToOperator for PropertyAccessExpression {
+    fn to_operator(&self) -> Vec<OperatorCode> {
+        let mut result = self.object.1.to_operator();
+        result.push(OperatorCode::LoadPropertyAccess(self.property.1.name.clone()));
+        result
+    }
+}
+
 impl ToOperator for ExpressionKind {
     fn to_operator(&self) -> Vec<OperatorCode> {
         match self {
@@ -103,6 +108,7 @@ impl ToOperator for ExpressionKind {
             ExpressionKind::NumberLiteralKind(_, number_literal) => number_literal.to_operator(),
             ExpressionKind::IdentifierKind(_, identifier) => identifier.to_operator(),
             // ExpressionKind::TypeDefineKind(_, type_define) => type_define.to_operator(),
+            ExpressionKind::PropertyAccessExpressionKind(_, dot) => dot.to_operator(),
             _ => todo!("not implemented"),
         }
     }

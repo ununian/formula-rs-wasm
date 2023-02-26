@@ -1,6 +1,4 @@
-use alloc::{
-    vec::Vec,
-};
+use alloc::vec::Vec;
 
 use super::{
     context::RuntimeContext, error::ExecuteError, function::run_runtime_function, value::Value,
@@ -110,6 +108,34 @@ impl Runnable for OperatorCode {
                         ctx.value_stack.push(result);
                     }
                     _ => return Err(ExecuteError::not_a_function()),
+                }
+            }
+            OperatorCode::LoadPropertyAccess(property) => {
+                let val = ctx.value_stack.pop().unwrap();
+                match val {
+                    Value::Array(arr) => {
+                        if arr.len() == 0 { // 空数组
+                            ctx.value_stack.push(Value::Array(Vec::new()));
+                            return Ok(());
+                        }
+
+                        let mut result = Vec::new();
+                        for item in arr {
+                            match item {
+                                Value::Object(obj) => {
+                                    let val = obj.get(property);
+                                    match val {
+                                        Some(val) => result.push(val.clone()),
+                                        None => return Err(ExecuteError::dot_input_not_object_array()),
+                                    }
+                                }
+                                _ => return Err(ExecuteError::dot_input_not_object_array()),
+                            }
+                        }
+
+                        ctx.value_stack.push(Value::Array(result));
+                    }
+                    _ => return Err(ExecuteError::dot_input_not_object_array()),
                 }
             }
         }

@@ -12,6 +12,13 @@ impl RuntimeFunction for SumFunction {
         if args.iter().all(|arg| arg.is_number()) {
             let mut sum = Value::Number(0.into());
             for arg in args {
+                if !arg.is_number() {
+                    return Err(ExecuteError::function_invalid_argument(
+                        vec!["Number", "Number[]"],
+                        args.iter().map(|a| a.get_type()).collect(),
+                    ));
+                }
+
                 sum = sum.add(arg.clone())?;
             }
             return Ok(sum);
@@ -21,6 +28,12 @@ impl RuntimeFunction for SumFunction {
             Value::Array(ref a) => {
                 let mut sum = Value::Number(0.into());
                 for arg in a {
+                    if !arg.is_number() {
+                        return Err(ExecuteError::function_invalid_argument(
+                            vec!["Number", "Number[]"],
+                            args.iter().map(|a| a.get_type()).collect(),
+                        ));
+                    }
                     sum = sum.add(arg.clone())?;
                 }
                 return Ok(sum);
@@ -37,7 +50,17 @@ pub struct CountFunction;
 
 impl RuntimeFunction for CountFunction {
     fn run(&self, args: &Vec<Value>) -> Result<Value, ExecuteError> {
-        Ok(Value::Number((args.len() as i64).into()))
+        if args.iter().all(|arg| arg.is_number()) {
+            return Ok(Value::Number((args.len() as i64).into()));
+        }
+
+        match args[0] {
+            Value::Array(ref a) => Ok(Value::Number((a.len() as i64).into())),
+            _ => Err(ExecuteError::function_invalid_argument(
+                vec!["Array"],
+                args.iter().map(|a| a.get_type()).collect(),
+            )),
+        }
     }
 }
 

@@ -4,7 +4,6 @@ mod formula_parse_ast {
         parse::{ast::to_ast, parse::Formula, to_operator::ToOperator},
         vm::{context::RuntimeContext, error::ExecuteError, runner::Runner, value::Value},
     };
-
     #[test]
     fn vm_demo() {
         fn run(expr: &str) -> Result<Value, ExecuteError> {
@@ -22,6 +21,31 @@ mod formula_parse_ast {
             context.set(
                 "arr".to_string(),
                 Value::Array(vec![Value::Number(1.into()), Value::Number(2.into())]),
+            );
+
+            fn make_subtask(id: i64, estimate_point: i64) -> Value {
+                Value::Object(
+                    [
+                        ("id".to_string(), Value::Number(id.into())),
+                        (
+                            "estimatePoint".to_string(),
+                            Value::Number(estimate_point.into()),
+                        ),
+                    ]
+                    .iter()
+                    .cloned()
+                    .collect(),
+                )
+            }
+
+            context.set(
+                "subtask".to_string(),
+                Value::Array(vec![
+                    make_subtask(1, 1),
+                    make_subtask(2, 2),
+                    make_subtask(3, 3),
+                    make_subtask(4, 4),
+                ]),
             );
 
             let result = runner.run(operators, &mut context);
@@ -64,5 +88,15 @@ mod formula_parse_ast {
             "SUM('arr')",
             ExecuteError::function_invalid_argument(vec!["Number", "Number[]"], vec!["String"]),
         );
+
+        check_error(
+            "SUM(subtask)",
+            ExecuteError::function_invalid_argument(vec!["Number", "Number[]"], vec!["Array"]),
+        );
+
+        check("COUNT(1,2,3,4,5)", Value::Number(5.into()));
+
+        check("SUM(subtask.estimatePoint)", Value::Number(10.into()));
+        check("COUNT(subtask)", Value::Number(4.into()));
     }
 }

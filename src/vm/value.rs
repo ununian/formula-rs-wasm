@@ -4,6 +4,7 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
+use hashbrown::HashMap;
 use num::{Rational64, ToPrimitive, Zero};
 
 use super::error::ExecuteError;
@@ -16,7 +17,7 @@ pub enum Value {
     DateTime(u64),
     Duration(i64),
     Array(Vec<Value>),
-    // Object(Object),
+    Object(HashMap<String, Value>),
     Function(String),
 }
 
@@ -192,6 +193,13 @@ impl Value {
         }
     }
 
+    pub fn is_object(&self) -> bool {
+        match self {
+            Value::Object(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn is_date_time(&self) -> bool {
         match self {
             Value::DateTime(_) => true,
@@ -208,6 +216,7 @@ impl Value {
             Value::DateTime(_) => "DateTime",
             Value::Duration(_) => "Duration",
             Value::Function(_) => "Function",
+            Value::Object(_) => "Object",
         }
     }
 }
@@ -239,6 +248,7 @@ impl Display for Value {
             Value::DateTime(_) => write!(f, "{:?}", self),
             Value::Duration(_) => write!(f, "{:?}", self),
             Value::Function(name) => write!(f, "Func {}()", name),
+            Value::Object(_) => write!(f, "{:?}", self),
         }
     }
 }

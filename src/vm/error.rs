@@ -27,6 +27,9 @@ pub enum ExecuteErrorType {
     NotAFunction,
     FunctionNotFound,
     FunctionInvalidArgument,
+
+    DotInputNotAObjectArray,
+    DotNotFountProperty,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -109,7 +112,16 @@ impl ExecuteError {
     pub fn function_invalid_argument(except: Vec<&str>, actual: Vec<&str>) -> Self {
         Self::new(ExecuteErrorType::FunctionInvalidArgument).with_message(format!(
             "function invalid argument, except: {:?}, actual: {:?}",
-            except.join(","), actual.join(","))
-        )
+            except.join(","),
+            actual.join(",")
+        ))
+    }
+
+    pub fn dot_input_not_object_array() -> Self {
+        Self::new(ExecuteErrorType::DotInputNotAObjectArray)
+    }
+
+    pub fn dot_not_found_property() -> Self {
+        Self::new(ExecuteErrorType::DotNotFountProperty)
     }
 }

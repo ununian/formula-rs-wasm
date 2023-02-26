@@ -129,7 +129,7 @@ mod formula_parse_identifier {
             .for_each(|s| {
                 let rules = get_first_expression_rules(Formula::parse(s));
                 assert_eq!(rules.clone().count(), 1);
-                match_rules(rules, vec![Rule::identifier]);
+                match_rules(rules, vec![Rule::variable]);
             });
     }
 
@@ -189,8 +189,8 @@ mod formula_parse_dot {
     fn dot_allow_value() {
         vec!["a.a", "$.a"].iter().for_each(|s| {
             let rules = get_first_expression_rules(Formula::parse(s));
-            assert_eq!(rules.clone().count(), 2);
-            match_rules(rules, vec![Rule::identifier, Rule::dot]);
+            assert_eq!(rules.clone().count(), 1);
+            match_rules(rules, vec![Rule::variable]);
         });
 
         // vec!["a.a.a.a"].iter().for_each(|s| {

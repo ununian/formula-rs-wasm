@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod formula_parse_ast {
     use expect_test::{expect, Expect};
-    use formula_rs_wasm::share::operator::OperatorCode;
     use formula_rs_wasm::parse::beautify::Beautify;
     use formula_rs_wasm::parse::to_operator::ToOperator;
     use formula_rs_wasm::parse::{ast::to_ast, parse::Formula};
+    use formula_rs_wasm::share::operator::OperatorCode;
 
     fn check_ast(expr: &str, expected: Expect) {
         let formula = Formula::parse(expr).unwrap();
@@ -438,6 +438,49 @@ mod formula_parse_ast {
                 OperatorCode::LoadIdentifier("a".to_string()),
                 OperatorCode::PushString("123".to_string()),
                 OperatorCode::Subtract,
+            ],
+        );
+
+        check(
+            "a(1)",
+            vec![
+                OperatorCode::LoadIdentifier("a".to_string()),
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::Call(1),
+            ],
+        );
+
+        check(
+            "a(a(1 + 1))",
+            vec![
+                OperatorCode::LoadIdentifier("a".to_string()),
+                OperatorCode::LoadIdentifier("a".to_string()),
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::Add,
+                OperatorCode::Call(1),
+                OperatorCode::Call(1),
+            ],
+        );
+
+        check(
+            "a(1,2,3,4)",
+            vec![
+                OperatorCode::LoadIdentifier("a".to_string()),
+                OperatorCode::PushNumber(1.into()),
+                OperatorCode::PushNumber(2.into()),
+                OperatorCode::PushNumber(3.into()),
+                OperatorCode::PushNumber(4.into()),
+                OperatorCode::Call(4),
+            ],
+        );
+
+        check(
+            "SUM(arr)",
+            vec![
+                OperatorCode::LoadIdentifier("SUM".to_string()),
+                OperatorCode::LoadIdentifier("arr".to_string()),
+                OperatorCode::Call(1),
             ],
         );
     }

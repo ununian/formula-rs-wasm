@@ -1,8 +1,8 @@
 use core::fmt::Display;
 
 use alloc::{
-    format,
     string::{String, ToString},
+    vec::Vec,
 };
 use num::{Rational64, ToPrimitive, Zero};
 
@@ -15,9 +15,9 @@ pub enum Value {
     String(String),
     DateTime(u64),
     Duration(i64),
-    // Array(Vec<Value>),
+    Array(Vec<Value>),
     // Object(Object),
-    // Function(Function),
+    Function(String),
 }
 
 impl Value {
@@ -38,9 +38,9 @@ impl Value {
             (Value::Duration(a), Value::Duration(b)) => Ok(Value::Duration(a + b)),
 
             _ => Err(ExecuteError::operator_mismatch(
-                "+",
-                self.to_string().as_str(),
-                Some(self.to_string().as_str()),
+                "+".to_string(),
+                self.to_string(),
+                Some(self.to_string()),
             )),
         }
     }
@@ -54,9 +54,9 @@ impl Value {
             }
             (Value::Duration(a), Value::Duration(b)) => Ok(Value::Duration(a - b)),
             _ => Err(ExecuteError::operator_mismatch(
-                "-",
-                self.to_string().as_str(),
-                Some(self.to_string().as_str()),
+                "-".to_string(),
+                self.to_string(),
+                Some(self.to_string()),
             )),
         }
     }
@@ -71,9 +71,9 @@ impl Value {
                     .unwrap(),
             )),
             _ => Err(ExecuteError::operator_mismatch(
-                "*",
-                self.to_string().as_str(),
-                Some(self.to_string().as_str()),
+                "*".to_string(),
+                self.to_string(),
+                Some(self.to_string()),
             )),
         }
     }
@@ -102,9 +102,9 @@ impl Value {
             }
 
             _ => Err(ExecuteError::operator_mismatch(
-                "/",
-                self.to_string().as_str(),
-                Some(self.to_string().as_str()),
+                "/".to_string(),
+                self.to_string(),
+                Some(self.to_string()),
             )),
         }
     }
@@ -127,8 +127,8 @@ impl Value {
                 }
             }
             _ => Err(ExecuteError::operator_mismatch(
-                "Factorial",
-                self.to_string().as_str(),
+                "Factorial".to_string(),
+                self.to_string(),
                 None,
             )),
         }
@@ -146,9 +146,9 @@ impl Value {
                 }
             }
             _ => Err(ExecuteError::operator_mismatch(
-                "Pow",
-                self.to_string().as_str(),
-                Some(self.to_string().as_str()),
+                "Pow".to_string(),
+                self.to_string(),
+                Some(self.to_string()),
             )),
         }
     }
@@ -157,10 +157,57 @@ impl Value {
         match (&self, &_rhs) {
             (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a % b)),
             _ => Err(ExecuteError::operator_mismatch(
-                "FormulaOperator::Modulo",
-                self.to_string().as_str(),
-                Some(self.to_string().as_str()),
+                "FormulaOperator::Modulo".to_string(),
+                self.to_string(),
+                Some(self.to_string()),
             )),
+        }
+    }
+
+    pub fn is_array(&self) -> bool {
+        match self {
+            Value::Array(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_bool(&self) -> bool {
+        match self {
+            Value::Bool(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_number(&self) -> bool {
+        match self {
+            Value::Number(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_string(&self) -> bool {
+        match self {
+            Value::String(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_date_time(&self) -> bool {
+        match self {
+            Value::DateTime(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_type(&self) -> &str {
+        match self {
+            Value::Array(_) => "Array",
+            Value::Bool(_) => "Bool",
+            Value::Number(_) => "Number",
+            Value::String(_) => "String",
+            Value::DateTime(_) => "DateTime",
+            Value::Duration(_) => "Duration",
+            Value::Function(_) => "Function",
         }
     }
 }
@@ -179,18 +226,19 @@ impl Display for Value {
                 }
             }
             Value::String(s) => write!(f, "{}", s),
-            // Value::Array(a) => {
-            //     write!(f, "[")?;
-            //     for (i, v) in a.iter().enumerate() {
-            //         write!(f, "{}", v)?;
-            //         if i != a.len() - 1 {
-            //             write!(f, ", ")?;
-            //         }
-            //     }
-            //     write!(f, "]")
-            // }
+            Value::Array(a) => {
+                write!(f, "[")?;
+                for (i, v) in a.iter().enumerate() {
+                    write!(f, "{}", v)?;
+                    if i != a.len() - 1 {
+                        write!(f, ", ")?;
+                    }
+                }
+                write!(f, "]")
+            }
             Value::DateTime(_) => write!(f, "{:?}", self),
             Value::Duration(_) => write!(f, "{:?}", self),
+            Value::Function(name) => write!(f, "Func {}()", name),
         }
     }
 }

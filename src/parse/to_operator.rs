@@ -1,12 +1,11 @@
 use alloc::{
-    string::{String, ToString},
     vec,
     vec::Vec,
 };
 
 use super::ast::{
     BinaryExpression, ExpressionKind, ExpressionStatement, FormulaBody, Identifier, NumberLiteral,
-    UnaryExpression, StringLiteral,
+    UnaryExpression, StringLiteral, CallExpression,
 };
 use crate::share::operator::OperatorCode;
 
@@ -76,6 +75,17 @@ impl ToOperator for StringLiteral {
     }
 }
 
+impl ToOperator for CallExpression {
+    fn to_operator(&self) -> Vec<OperatorCode> {
+        let mut result = self.callee.1.to_operator();
+        for arg in self.arguments.iter() {
+            result.extend(arg.1.to_operator());
+        }
+        result.push(OperatorCode::Call(self.arguments.len() as u8));
+        result
+    }
+}
+
 impl ToOperator for ExpressionKind {
     fn to_operator(&self) -> Vec<OperatorCode> {
         match self {
@@ -85,7 +95,7 @@ impl ToOperator for ExpressionKind {
             ExpressionKind::BinaryExpressionKind(_, binary_expression) => {
                 binary_expression.to_operator()
             }
-            // ExpressionKind::CallExpressionKind(_, call_expression) => call_expression.to_operator(),
+            ExpressionKind::CallExpressionKind(_, call_expression) => call_expression.to_operator(),
             // ExpressionKind::PropertyAccessExpressionKind(_, property_access_expression) => {
             //     property_access_expression.to_operator()
             // }
@@ -93,7 +103,7 @@ impl ToOperator for ExpressionKind {
             ExpressionKind::NumberLiteralKind(_, number_literal) => number_literal.to_operator(),
             ExpressionKind::IdentifierKind(_, identifier) => identifier.to_operator(),
             // ExpressionKind::TypeDefineKind(_, type_define) => type_define.to_operator(),
-            _ => vec![],
+            _ => todo!("not implemented"),
         }
     }
 }

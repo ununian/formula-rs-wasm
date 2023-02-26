@@ -1,12 +1,10 @@
 use alloc::{
-    string::{String, ToString},
-    vec,
     vec::Vec,
 };
-use hashbrown::HashMap;
-use num::{FromPrimitive, Rational64};
 
-use super::{error::ExecuteError, value::Value};
+use super::{
+    context::RuntimeContext, error::ExecuteError, function::run_runtime_function, value::Value,
+};
 use crate::share::operator::OperatorCode;
 
 pub struct Runner;
@@ -15,12 +13,14 @@ impl Runner {
     pub fn run(
         &self,
         operators: Vec<OperatorCode>,
-        heap: &mut HashMap<String, Value>,
+        context: &mut RuntimeContext,
     ) -> Result<Value, ExecuteError> {
-        let mut stack: Vec<Value> = vec![];
+        if context.value_stack.len() > 0 {
+            return Err(ExecuteError::stack_not_empty());
+        }
 
         for operator in operators {
-            operator.run(&mut stack, heap)?;
+            operator.run(context)?;
         }
 
         // heap.insert(
@@ -28,85 +28,90 @@ impl Runner {
         //     Value::Number(Rational64::from_f64(12.0).unwrap()),
         // );
 
-        match stack.len() {
+        match context.value_stack.len() {
             0 => return Err(ExecuteError::result_count_mismatch(0)),
-            1 => Ok(stack.pop().unwrap()),
+            1 => Ok(context.value_stack.pop().unwrap()),
             count => return Err(ExecuteError::result_count_mismatch(count)),
         }
     }
 }
 
 pub trait Runnable {
-    fn run(
-        &self,
-        stack: &mut Vec<Value>,
-        heap: &mut HashMap<String, Value>,
-    ) -> Result<(), ExecuteError>;
+    fn run(&self, context: &mut RuntimeContext) -> Result<(), ExecuteError>;
 }
 
 impl Runnable for OperatorCode {
-    fn run(
-        &self,
-        stack: &mut Vec<Value>,
-        heap: &mut HashMap<String, Value>,
-    ) -> Result<(), ExecuteError> {
+    fn run(&self, ctx: &mut RuntimeContext) -> Result<(), ExecuteError> {
         match self {
             OperatorCode::Add => {
-                let rhs = stack.pop().unwrap();
-                let lhs = stack.pop().unwrap();
+                let rhs = ctx.value_stack.pop().unwrap();
+                let lhs = ctx.value_stack.pop().unwrap();
 
-                stack.push(lhs.add(rhs)?);
+                ctx.value_stack.push(lhs.add(rhs)?);
             }
             OperatorCode::Subtract => {
-                let rhs = stack.pop().unwrap();
-                let lhs = stack.pop().unwrap();
+                let rhs = ctx.value_stack.pop().unwrap();
+                let lhs = ctx.value_stack.pop().unwrap();
 
-                stack.push(lhs.sub(rhs)?);
+                ctx.value_stack.push(lhs.sub(rhs)?);
             }
             OperatorCode::Multiply => {
-                let rhs = stack.pop().unwrap();
-                let lhs = stack.pop().unwrap();
+                let rhs = ctx.value_stack.pop().unwrap();
+                let lhs = ctx.value_stack.pop().unwrap();
 
-                stack.push(lhs.mul(rhs)?);
+                ctx.value_stack.push(lhs.mul(rhs)?);
             }
             OperatorCode::Divide => {
-                let rhs = stack.pop().unwrap();
-                let lhs = stack.pop().unwrap();
+                let rhs = ctx.value_stack.pop().unwrap();
+                let lhs = ctx.value_stack.pop().unwrap();
 
-                stack.push(lhs.div(rhs)?);
+                ctx.value_stack.push(lhs.div(rhs)?);
             }
             OperatorCode::Modulo => {
-                let rhs = stack.pop().unwrap();
-                let lhs = stack.pop().unwrap();
+                let rhs = ctx.value_stack.pop().unwrap();
+                let lhs = ctx.value_stack.pop().unwrap();
 
-                stack.push(lhs.modulo(rhs)?);
+                ctx.value_stack.push(lhs.modulo(rhs)?);
             }
             OperatorCode::Factorial => {
-                let lhs = stack.pop().unwrap();
-                stack.push(lhs.factorial()?);
+                let lhs = ctx.value_stack.pop().unwrap();
+                ctx.value_stack.push(lhs.factorial()?);
             }
             OperatorCode::Power => {
-                let rhs = stack.pop().unwrap();
-                let lhs = stack.pop().unwrap();
+                let rhs = ctx.value_stack.pop().unwrap();
+                let lhs = ctx.value_stack.pop().unwrap();
 
-                stack.push(lhs.pow(rhs)?);
+                ctx.value_stack.push(lhs.pow(rhs)?);
             }
 
             OperatorCode::PushNumber(val) => {
-                stack.push(Value::Number(*val));
+                ctx.value_stack.push(Value::Number(*val));
             }
 
             OperatorCode::PushString(val) => {
-                stack.push(Value::String(val.clone()));
+                ctx.value_stack.push(Value::String(val.clone()));
             }
             OperatorCode::LoadIdentifier(name) => {
-                let val = heap.get(name);
+                let val = ctx.heap.get(name);
                 match val {
-                    Some(val) => stack.push(val.clone()),
+                    Some(val) => ctx.value_stack.push(val.clone()),
                     None => return Err(ExecuteError::identifier_not_found(name)),
                 }
-            },
-            OperatorCode::Call => todo!(),
+            }
+            OperatorCode::Call(arg_count) => {
+                let mut args = Vec::new();
+                for _ in 0..*arg_count {
+                    args.push(ctx.value_stack.pop().unwrap());
+                }
+                let func = ctx.value_stack.pop().unwrap();
+                match func {
+                    Value::Function(name) => {
+                        let result = run_runtime_function(&name, &args)?;
+                        ctx.value_stack.push(result);
+                    }
+                    _ => return Err(ExecuteError::not_a_function()),
+                }
+            }
         }
 
         Ok(())

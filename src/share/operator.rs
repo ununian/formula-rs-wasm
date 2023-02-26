@@ -21,5 +21,5 @@ pub enum OperatorCode {
     LoadIdentifier(String),
 
     // func
-    Call,
+    Call(u8),
 }

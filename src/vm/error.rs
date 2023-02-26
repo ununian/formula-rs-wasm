@@ -1,4 +1,8 @@
-use alloc::{format, string::String};
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 // 数值相关错误
 #[derive(Clone, Debug, Copy, PartialEq)]
@@ -6,8 +10,6 @@ pub enum ExecuteErrorType {
     UnknownError,
 
     ResultCountMismatchError, // 结果数量不匹配
-    
-
 
     // 操作符错误
     OperatorMismatchError,
@@ -18,13 +20,19 @@ pub enum ExecuteErrorType {
     FactorialNotInteger,
     FactorialNotNegative,
 
-    IdentifierNotFound
+    IdentifierNotFound,
+
+    // Runtime 错误
+    StackNotEmpty, // 程序一开始的栈不为空
+    NotAFunction,
+    FunctionNotFound,
+    FunctionInvalidArgument,
 }
 
-#[derive(Clone, Debug, Copy, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ExecuteError {
     pub type_: ExecuteErrorType,
-    pub message: Option<&'static str>,
+    pub message: Option<String>,
 }
 
 impl ExecuteError {
@@ -39,19 +47,19 @@ impl ExecuteError {
         Self::new(ExecuteErrorType::UnknownError)
     }
 
-    pub fn with_message(self, _: &str) -> Self {
+    pub fn with_message(self, msg: String) -> Self {
         Self {
             type_: self.type_,
-            message: Some("msg"), // TODO
+            message: Some(msg),
         }
     }
 
-    pub fn operator_mismatch(operator: &str, lhs: &str, rhs: Option<&str>) -> Self {
-        Self::new(ExecuteErrorType::OperatorMismatchError).with_message(&format!(
+    pub fn operator_mismatch(operator: String, lhs: String, rhs: Option<String>) -> Self {
+        Self::new(ExecuteErrorType::OperatorMismatchError).with_message(format!(
             "{} {} {}",
             lhs,
             operator,
-            rhs.unwrap_or("")
+            rhs.unwrap_or("".to_string())
         ))
     }
 
@@ -77,11 +85,31 @@ impl ExecuteError {
 
     pub fn result_count_mismatch(actual: usize) -> Self {
         Self::new(ExecuteErrorType::ResultCountMismatchError)
-            .with_message(&format!("result count expect 1, actual: {}", actual))
+            .with_message(format!("result count expect 1, actual: {}", actual))
     }
 
     pub fn identifier_not_found(identifier: &String) -> Self {
         Self::new(ExecuteErrorType::IdentifierNotFound)
-            .with_message(&format!("identifier not found: {}", identifier))
+            .with_message(format!("identifier not found: {}", identifier))
+    }
+
+    pub fn stack_not_empty() -> Self {
+        Self::new(ExecuteErrorType::StackNotEmpty)
+    }
+
+    pub fn not_a_function() -> Self {
+        Self::new(ExecuteErrorType::NotAFunction)
+    }
+
+    pub fn function_not_found(name: &String) -> Self {
+        Self::new(ExecuteErrorType::FunctionNotFound)
+            .with_message(format!("function not found: {}", name))
+    }
+
+    pub fn function_invalid_argument(except: Vec<&str>, actual: Vec<&str>) -> Self {
+        Self::new(ExecuteErrorType::FunctionInvalidArgument).with_message(format!(
+            "function invalid argument, except: {:?}, actual: {:?}",
+            except.join(","), actual.join(","))
+        )
     }
 }

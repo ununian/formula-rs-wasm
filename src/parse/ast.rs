@@ -346,6 +346,7 @@ pub fn expression_to_ast(paris: Pairs<Rule>) -> ExpressionAstItem {
                 | Rule::compare_le
                 | Rule::compare_lt
                 | Rule::compare_gt => {
+                    // TODO: 区分比较表达式和操作表达式
                     ExpressionAstItem(
                         Range(lhs.0 .0, rhs.0 .1),
                         ExpressionKind::BinaryExpressionKind(

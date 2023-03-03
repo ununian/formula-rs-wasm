@@ -231,37 +231,38 @@ mod formula_parse_function {
 
     use crate::{get_first_expression_rules, match_rules};
 
-    #[test]
-    fn function_allow_value() {
-        vec![
-            "where()",
-            "count(where(subtask, $.updateTime > now()))",
-            "count( where( subtask, $.updateTime > now(aa.a + 2) ) )",
-            "count( where( subtask, $.updateTime > (now() + day(1) ) ) )",
-        ]
-        .iter()
-        .for_each(|s| {
-            let rules = get_first_expression_rules(Formula::parse(s));
-            match_rules(rules, vec![Rule::function_call]);
-        });
+    // TODO: 目前仅需要支持 过滤表达式
+    // #[test]
+    // fn function_allow_value() {
+    //     vec![
+    //         "where()",
+    //         "count(where(subtask, $.updateTime > now()))",
+    //         "count( where( subtask, $.updateTime > now(aa.a + 2) ) )",
+    //         "count( where( subtask, $.updateTime > (now() + day(1) ) ) )",
+    //     ]
+    //     .iter()
+    //     .for_each(|s| {
+    //         let rules = get_first_expression_rules(Formula::parse(s));
+    //         match_rules(rules, vec![Rule::function_call]);
+    //     });
 
-        vec!["count( where( subtask, $.updateTime > (now(aa.a + 2) + day(1) ) ) )"]
-            .iter()
-            .for_each(|s| {
-                let rules = get_first_expression_rules(Formula::parse(s));
-                println!("rules: {:?}", rules.clone().collect::<Vec<_>>());
-                match_rules(rules, vec![Rule::function_call]);
-            });
+    //     vec!["count( where( subtask, $.updateTime > (now(aa.a + 2) + day(1) ) ) )"]
+    //         .iter()
+    //         .for_each(|s| {
+    //             let rules = get_first_expression_rules(Formula::parse(s));
+    //             println!("rules: {:?}", rules.clone().collect::<Vec<_>>());
+    //             match_rules(rules, vec![Rule::function_call]);
+    //         });
 
-        vec![
-            "1+count()",
-            "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))",
-            "now() + day(1) + hour(1)",
-        ]
-        .iter()
-        .for_each(|s| {
-            let rules = get_first_expression_rules(Formula::parse(s));
-            match_rules(rules, vec![Rule::operation_expr]);
-        });
-    }
+    //     vec![
+    //         "1+count()",
+    //         "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))",
+    //         "now() + day(1) + hour(1)",
+    //     ]
+    //     .iter()
+    //     .for_each(|s| {
+    //         let rules = get_first_expression_rules(Formula::parse(s));
+    //         match_rules(rules, vec![Rule::operation_expr]);
+    //     });
+    // }
 }

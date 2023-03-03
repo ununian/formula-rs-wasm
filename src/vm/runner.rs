@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use num::Rational64;
 
 use super::{
     context::RuntimeContext, error::ExecuteError, function::run_runtime_function, value::Value,
@@ -114,7 +115,8 @@ impl Runnable for OperatorCode {
                 let val = ctx.value_stack.pop().unwrap();
                 match val {
                     Value::Array(arr) => {
-                        if arr.len() == 0 { // 空数组
+                        if arr.len() == 0 {
+                            // 空数组
                             ctx.value_stack.push(Value::Array(Vec::new()));
                             return Ok(());
                         }
@@ -126,7 +128,48 @@ impl Runnable for OperatorCode {
                                     let val = obj.get(property);
                                     match val {
                                         Some(val) => result.push(val.clone()),
-                                        None => return Err(ExecuteError::dot_input_not_object_array()),
+                                        None => {
+                                            return Err(ExecuteError::dot_input_not_object_array())
+                                        }
+                                    }
+                                }
+                                _ => return Err(ExecuteError::dot_input_not_object_array()),
+                            }
+                        }
+
+                        ctx.value_stack.push(Value::Array(result));
+                    }
+                    _ => return Err(ExecuteError::dot_input_not_object_array()),
+                }
+            }
+            OperatorCode::FilterExpression(left, op, value) => {
+                let val = ctx.value_stack.pop().unwrap();
+                match val {
+                    Value::Array(arr) => {
+                        if arr.len() == 0 {
+                            // 空数组
+                            ctx.value_stack.push(Value::Array(Vec::new()));
+                            return Ok(());
+                        }
+
+                        let mut result = Vec::new();
+
+                        let rhs = match value.parse::<i64>() {
+                            Ok(val) => Value::Number(Rational64::from_integer(val.into())),
+                            Err(_) => Value::String(value.clone()),
+                        };
+
+                        for item in arr {
+                            match item {
+                                Value::Object(ref obj) => {
+                                    let val = obj.get(left);
+                                    match val {
+                                        Some(val) => {
+                                            if val.compare(op, &rhs)? {
+                                                result.push(item.clone());
+                                            }
+                                        }
+                                        None => return Err(ExecuteError::dot_not_found_property()),
                                     }
                                 }
                                 _ => return Err(ExecuteError::dot_input_not_object_array()),

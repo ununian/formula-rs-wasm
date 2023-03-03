@@ -27,6 +27,7 @@ pub enum ExecuteErrorType {
     NotAFunction,
     FunctionNotFound,
     FunctionInvalidArgument,
+    FilterArgumentNotANumber,
 
     DotInputNotAObjectArray,
     DotNotFountProperty,
@@ -123,5 +124,9 @@ impl ExecuteError {
 
     pub fn dot_not_found_property() -> Self {
         Self::new(ExecuteErrorType::DotNotFountProperty)
+    }
+
+    pub fn filter_argument_not_a_number() -> Self {
+        Self::new(ExecuteErrorType::FilterArgumentNotANumber)
     }
 }

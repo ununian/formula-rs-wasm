@@ -165,6 +165,38 @@ impl Value {
         }
     }
 
+    pub fn compare(&self, op: &String, rhs: &Value) -> Result<bool, ExecuteError> {
+        match (self, rhs) {
+            (Value::String(lhs), Value::String(rhs)) => match op.as_str() {
+                "=" | "==" => return Ok(lhs == rhs),
+                "!=" => return Ok(lhs != rhs),
+                _ => Err(ExecuteError::operator_mismatch(
+                    op.clone(),
+                    self.to_string(),
+                    Some(self.to_string()),
+                )),
+            },
+            (Value::Number(lhs), Value::Number(rhs)) => match op.as_str() {
+                ">" => Ok(lhs.gt(&rhs)),
+                ">=" => Ok(lhs.ge(&rhs)),
+                "<" => Ok(lhs.lt(&rhs)),
+                "<=" => Ok(lhs.le(&rhs)),
+                "==" => Ok(lhs.eq(&rhs)),
+                "!=" => Ok(lhs.ne(&rhs)),
+                _ => Err(ExecuteError::operator_mismatch(
+                    op.clone(),
+                    self.to_string(),
+                    Some(self.to_string()),
+                )),
+            },
+            _ => Err(ExecuteError::operator_mismatch(
+                op.clone(),
+                self.to_string(),
+                Some(self.to_string()),
+            )),
+        }
+    }
+
     pub fn is_array(&self) -> bool {
         match self {
             Value::Array(_) => true,

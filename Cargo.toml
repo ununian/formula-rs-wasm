@@ -42,3 +42,12 @@ expect-test = "1.4"
 [profile.release]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
+
+[[bin]]
+name = "formula"
+path = "src/cli/main.rs"
+doc = false
+
+[target.x86_64-unknown-linux-musl]
+linker = "rust-lld"
+rustflags = ["-C", "linker-flavor=ld.lld"]

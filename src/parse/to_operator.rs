@@ -1,5 +1,3 @@
-use core::cmp::Ordering;
-
 use alloc::{
     string::{String, ToString},
     vec,

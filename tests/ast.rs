@@ -2,6 +2,7 @@
 mod formula_parse_ast {
     use expect_test::{expect, Expect};
     use formula_rs_wasm::parse::beautify::Beautify;
+    use formula_rs_wasm::parse::dependencies::get_dependencies;
     use formula_rs_wasm::parse::to_operator::ToOperator;
     use formula_rs_wasm::parse::{ast::to_ast, parse::Formula};
     use formula_rs_wasm::share::operator::OperatorCode;
@@ -390,6 +391,8 @@ mod formula_parse_ast {
 
             let operators = ast.to_operator();
             assert_eq!(operators, result);
+
+            // println!("{:#?}", get_dependencies(&operators))
         }
 
         check(

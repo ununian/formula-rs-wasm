@@ -16,10 +16,6 @@ pub trait ToOperator {
 
 impl ToOperator for FormulaBody {
     fn to_operator(&self) -> Vec<OperatorCode> {
-        // for expr in self.body.iter() {
-        //     result = [result, expr.1.walk()].concat();
-        // }
-
         self.body
             .iter()
             .flat_map(|expr| expr.1.to_operator())

@@ -35,6 +35,10 @@ impl RuntimeContext {
         self.heap.get(key)
     }
 
+    pub fn has(&self, key: &String) -> bool {
+        self.heap.contains_key(key)
+    }
+
     pub fn set(&mut self, key: String, value: Value) {
         self.heap.insert(key, value);
     }

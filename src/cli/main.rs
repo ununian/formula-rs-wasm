@@ -6,7 +6,6 @@ use hashbrown::{HashMap, HashSet};
 use num::{FromPrimitive, Rational64};
 use std::{fs, time::Instant};
 
-use rayon::prelude::*;
 use serde::{self, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -26,7 +25,7 @@ fn main() {
     let start = Instant::now();
 
     let (byte_code_map, has_formula_issue_types) = get_formulas("prod");
-    let mut issues = get_issues(&has_formula_issue_types, "prod_full");
+    let issues = get_issues(&has_formula_issue_types, "prod_full");
 
     let mut ok_number = 0;
     let mut err_number = 1;
@@ -49,12 +48,17 @@ fn main() {
             .map(|(_, field_code)| field_code)
             .collect::<Vec<_>>();
 
+        let runner = Runner;
+        let mut context = RuntimeContext::new();
+        context.inject_functions();
+        mock_time(&mut context, issue);
+
         formula_field_codes.iter().for_each(|field_code| {
             let byte_code = byte_code_map
                 .get(&(issue_type_id, field_code.to_string()))
                 .unwrap();
 
-            let result = run(byte_code, field_code, issue);
+            let result = run(byte_code, &runner, &mut context, &issue);
 
             match result {
                 Ok(_) => {
@@ -76,7 +80,7 @@ fn main() {
 }
 
 fn get_formulas(env: &str) -> (HashMap<(i64, String), Vec<u8>>, HashSet<i64>) {
-    let contents = fs::read_to_string(format!("C:\\Users\\ununi\\Downloads\\{}_formula.json", env))
+    let contents = fs::read_to_string(format!("data/{}_formula.json", env))
         .expect("Should have been able to read the file");
 
     let arr: Vec<FormulaItem> = serde_json::from_str(&contents).unwrap();
@@ -98,7 +102,7 @@ fn get_formulas(env: &str) -> (HashMap<(i64, String), Vec<u8>>, HashSet<i64>) {
 }
 
 fn get_issues(has_formula_issue_types: &HashSet<i64>, env: &str) -> Vec<JsonValue> {
-    let contents = fs::read_to_string(format!("C:\\Users\\ununi\\Downloads\\{}_issues.json", env))
+    let contents = fs::read_to_string(format!("data/{}_issues.json", env))
         .expect("Should have been able to read the file");
 
     let issues: Vec<JsonValue> = serde_json::from_str(&contents).unwrap();
@@ -147,24 +151,23 @@ fn compile(expr: &str) -> Vec<u8> {
 
 fn run(
     byte_code: &Vec<u8>,
-    _filed_code: &String,
+    runner: &Runner,
+    ctx: &mut RuntimeContext,
     issue: &JsonValue,
 ) -> Result<Value, ExecuteError> {
     let operators = bincode::deserialize(&byte_code[..]).unwrap();
     let dependencies = get_dependencies(&operators);
 
-    let runner = Runner;
-    let mut context = RuntimeContext::new();
-    context.inject_functions();
-    mock_time(&mut context, issue);
-
     for dependency in dependencies {
+        if ctx.has(&dependency) {
+            continue;
+        }
         let value = json_object_to_value(&issue[&dependency]);
         // println!("dependency: {}", &dependency);
-        context.set(dependency, value);
+        ctx.set(dependency, value);
     }
 
-    let result = runner.run(operators, &mut context);
+    let result = runner.run(operators, ctx);
 
     result
 }

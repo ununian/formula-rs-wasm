@@ -4,7 +4,7 @@
 #![no_std]
 
 extern crate wasm_bindgen_test;
-use formula_rs_wasm::greet;
+use formula_rs_wasm::run;
 use wasm_bindgen_test::*;
 
 extern crate alloc;
@@ -46,6 +46,6 @@ fn greet_test() {
         ]
       }
       "#;
-    let r = greet("estimatePoint ^ COUNT(subtask.estimatePoint;status=3) + SUM(subtask.estimatePoint;status=2) + 0.1 + 0.2".to_string(), data.to_string());
+    let r = run("estimatePoint ^ COUNT(subtask.estimatePoint;status=3) + SUM(subtask.estimatePoint;status=2) + 0.1 + 0.2".to_string(), data.to_string(), 1678116762992, 1678060800000);
     assert_eq!(r, "103.3");
 }

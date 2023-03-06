@@ -5,9 +5,9 @@ use formula_rs_wasm::{
 use hashbrown::{HashMap, HashSet};
 use num::{FromPrimitive, Rational64};
 use std::{
-    fs,
+    fs, io,
     sync::{Arc, Mutex},
-    time::{Instant, SystemTime}, io,
+    time::{Instant, SystemTime},
 };
 
 use rayon::prelude::*;
@@ -34,7 +34,7 @@ fn main() {
 
     let ok_number = Arc::new(Mutex::new(0)); // @1
     let err_number = Arc::new(Mutex::new(0)); // @1
-    // let err_count_map = Arc::new(Mutex::new(HashMap::<String, u64>::new())); // @1
+                                              // let err_count_map = Arc::new(Mutex::new(HashMap::<String, u64>::new())); // @1
 
     println!(
         "parse done, formula count {}, issue count {}, use {:?} ms",
@@ -142,29 +142,6 @@ fn get_issues(has_formula_issue_types: &HashSet<i64>, env: &str) -> Vec<JsonValu
     issues_value
 }
 
-fn json_object_to_value(json: &JsonValue) -> Value {
-    match json {
-        JsonValue::Null => Value::Null,
-        JsonValue::Bool(b) => Value::Bool(*b),
-        JsonValue::Number(n) => Value::Number(Rational64::from_f64(n.as_f64().unwrap()).unwrap()),
-        JsonValue::String(s) => Value::String(s.to_string()),
-        JsonValue::Array(arr) => {
-            let mut vec = Vec::new();
-            for item in arr {
-                vec.push(json_object_to_value(item));
-            }
-            Value::Array(vec)
-        }
-        JsonValue::Object(obj) => {
-            let mut map = HashMap::new();
-            for (key, value) in obj {
-                map.insert(key.to_string(), json_object_to_value(value));
-            }
-            Value::Object(map)
-        }
-    }
-}
-
 fn compile(expr: &str) -> Vec<u8> {
     let formula = Formula::parse(expr).unwrap();
     let (_, ast) = to_ast(formula.paris);
@@ -186,7 +163,7 @@ fn run(
         if ctx.has(&dependency) {
             continue;
         }
-        let value = json_object_to_value(&issue[&dependency]);
+        let value = Value::from_json(&issue[&dependency]);
         // println!("dependency: {}", &dependency);
         ctx.set(dependency, value);
     }
@@ -212,11 +189,11 @@ fn mock_time(ctx: &mut RuntimeContext, issue: &JsonValue) {
 
     ctx.set(
         "GET_UPDATE_TIME".to_string(),
-        json_object_to_value(&issue["updateTime"]),
+        Value::from_json(&issue["updateTime"]),
     );
 
     ctx.set(
         "GET_CREATE_TIME".to_string(),
-        json_object_to_value(&issue["createTime"]),
+        Value::from_json(&issue["createTime"]),
     );
 }

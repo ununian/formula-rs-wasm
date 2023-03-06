@@ -5,7 +5,8 @@ use alloc::{
     vec::Vec,
 };
 use hashbrown::HashMap;
-use num::{Rational64, ToPrimitive, Zero};
+use num::{FromPrimitive, Rational64, ToPrimitive, Zero};
+use serde_json::Value as JsonValue;
 
 use super::error::ExecuteError;
 
@@ -21,6 +22,33 @@ pub enum Value {
     Function(String),
 
     Null,
+}
+
+impl Value {
+    pub fn from_json(json: &JsonValue) -> Value {
+        match json {
+            JsonValue::Null => Value::Null,
+            JsonValue::Bool(b) => Value::Bool(*b),
+            JsonValue::Number(n) => {
+                Value::Number(Rational64::from_f64(n.as_f64().unwrap()).unwrap())
+            }
+            JsonValue::String(s) => Value::String(s.to_string()),
+            JsonValue::Array(arr) => {
+                let mut vec = Vec::new();
+                for item in arr {
+                    vec.push(Value::from_json(item));
+                }
+                Value::Array(vec)
+            }
+            JsonValue::Object(obj) => {
+                let mut map = HashMap::new();
+                for (key, value) in obj {
+                    map.insert(key.to_string(), Value::from_json(value));
+                }
+                Value::Object(map)
+            }
+        }
+    }
 }
 
 impl Value {

@@ -1,4 +1,5 @@
 use alloc::{string::String, vec, vec::Vec};
+use num::{Rational64, Zero};
 
 use super::{error::ExecuteError, value::Value};
 
@@ -11,15 +12,20 @@ impl RuntimeFunction for SumFunction {
     fn run(&self, args: &Vec<Value>) -> Result<Value, ExecuteError> {
         if args.iter().all(|arg| arg.is_number()) {
             let mut sum = Value::Number(0.into());
-            for arg in args {
-                if !arg.is_number() {
-                    return Err(ExecuteError::function_invalid_argument(
-                        vec!["Number", "Number[]"],
-                        args.iter().map(|a| a.get_type()).collect(),
-                    ));
-                }
 
-                sum = sum.add(arg.clone())?;
+            for arg in args {
+                let val = match arg {
+                    Value::Number(n) => *n,
+                    Value::Null => Rational64::zero(),
+                    _ => {
+                        return Err(ExecuteError::function_invalid_argument(
+                            vec!["Number", "Number[]"],
+                            args.iter().map(|a| a.get_type()).collect(),
+                        ))
+                    }
+                };
+
+                sum = sum.add(Value::Number(val))?;
             }
             return Ok(sum);
         }
@@ -28,13 +34,17 @@ impl RuntimeFunction for SumFunction {
             Value::Array(ref a) => {
                 let mut sum = Value::Number(0.into());
                 for arg in a {
-                    if !arg.is_number() {
-                        return Err(ExecuteError::function_invalid_argument(
-                            vec!["Number", "Number[]"],
-                            args.iter().map(|a| a.get_type()).collect(),
-                        ));
-                    }
-                    sum = sum.add(arg.clone())?;
+                    let val = match arg {
+                        Value::Number(n) => *n,
+                        Value::Null => Rational64::zero(),
+                        _ => {
+                            return Err(ExecuteError::function_invalid_argument(
+                                vec!["Number", "Number[]"],
+                                args.iter().map(|a| a.get_type()).collect(),
+                            ))
+                        }
+                    };
+                    sum = sum.add(Value::Number(val))?;
                 }
                 return Ok(sum);
             }

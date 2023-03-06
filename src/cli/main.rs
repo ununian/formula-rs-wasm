@@ -4,8 +4,13 @@ use formula_rs_wasm::{
 };
 use hashbrown::{HashMap, HashSet};
 use num::{FromPrimitive, Rational64};
-use std::{fs, time::Instant};
+use std::{
+    fs,
+    sync::{Arc, Mutex},
+    time::{Instant, SystemTime}, io,
+};
 
+use rayon::prelude::*;
 use serde::{self, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -27,8 +32,9 @@ fn main() {
     let (byte_code_map, has_formula_issue_types) = get_formulas("prod");
     let issues = get_issues(&has_formula_issue_types, "prod_full");
 
-    let mut ok_number = 0;
-    let mut err_number = 1;
+    let ok_number = Arc::new(Mutex::new(0)); // @1
+    let err_number = Arc::new(Mutex::new(0)); // @1
+    // let err_count_map = Arc::new(Mutex::new(HashMap::<String, u64>::new())); // @1
 
     println!(
         "parse done, formula count {}, issue count {}, use {:?} ms",
@@ -37,8 +43,8 @@ fn main() {
         start.elapsed().as_millis()
     );
 
-    // issues.par_iter().for_each(|issue| {
-    issues.iter().for_each(|issue| {
+    issues.par_iter().for_each(|issue| {
+        // issues.iter().for_each(|issue| {
         let issue_type_id = issue["issueTypeId"].as_i64().unwrap();
 
         let formula_field_codes = byte_code_map
@@ -57,15 +63,25 @@ fn main() {
             let byte_code = byte_code_map
                 .get(&(issue_type_id, field_code.to_string()))
                 .unwrap();
-
+            context.reset_stack();
             let result = run(byte_code, &runner, &mut context, &issue);
 
             match result {
                 Ok(_) => {
-                    ok_number += 1;
+                    let counter = Arc::clone(&ok_number);
+                    let mut num = counter.lock().unwrap();
+                    *num += 1;
                 }
-                Err(_) => {
-                    err_number += 1;
+                Err(_e) => {
+                    let counter = Arc::clone(&err_number);
+                    let mut num = counter.lock().unwrap();
+
+                    // let hash_map = Arc::clone(&err_count_map);
+                    // let mut map = hash_map.lock().unwrap();
+                    // let err_count = map.entry(format!("{:?}", _e)).or_insert(0);
+                    // *err_count += 1;
+
+                    *num += 1;
                 }
             }
         });
@@ -73,10 +89,15 @@ fn main() {
 
     println!(
         "ok_number: {}, err_number: {}, use {:?} ms",
-        ok_number,
-        err_number,
+        *ok_number.lock().unwrap(),
+        *err_number.lock().unwrap(),
         start.elapsed().as_millis()
     );
+
+    let stdin = io::stdin();
+    let _ = stdin.read_line(&mut String::new()).unwrap();
+
+    // println!("err_set: {:#?}", *err_count_map.lock().unwrap());
 }
 
 fn get_formulas(env: &str) -> (HashMap<(i64, String), Vec<u8>>, HashSet<i64>) {
@@ -88,15 +109,17 @@ fn get_formulas(env: &str) -> (HashMap<(i64, String), Vec<u8>>, HashSet<i64>) {
     let mut byte_code_map = HashMap::new();
     let mut has_formula_issue_types = HashSet::new();
 
-    arr.iter().for_each(|formula| {
-        let byte_code = compile(&formula.expression);
-        has_formula_issue_types.insert(formula.issue_type_id);
-        // key is issue_type_id + field_code
-        byte_code_map.insert(
-            (formula.issue_type_id, formula.field_code.to_string()),
-            byte_code,
-        );
-    });
+    arr.iter()
+        // .filter(|formula| formula.field_code == "customfield_48809227")
+        .for_each(|formula| {
+            let byte_code = compile(&formula.expression);
+            has_formula_issue_types.insert(formula.issue_type_id);
+            // key is issue_type_id + field_code
+            byte_code_map.insert(
+                (formula.issue_type_id, formula.field_code.to_string()),
+                byte_code,
+            );
+        });
 
     (byte_code_map, has_formula_issue_types)
 }
@@ -112,6 +135,7 @@ fn get_issues(has_formula_issue_types: &HashSet<i64>, env: &str) -> Vec<JsonValu
         .filter(|issue| {
             issue["issueTypeId"].is_number()
                 && has_formula_issue_types.contains(&issue["issueTypeId"].as_i64().unwrap())
+            // && issue["id"].as_i64().unwrap() == 19828736
         })
         .collect::<Vec<JsonValue>>();
 
@@ -120,7 +144,7 @@ fn get_issues(has_formula_issue_types: &HashSet<i64>, env: &str) -> Vec<JsonValu
 
 fn json_object_to_value(json: &JsonValue) -> Value {
     match json {
-        JsonValue::Null => Value::String("".to_string()),
+        JsonValue::Null => Value::Null,
         JsonValue::Bool(b) => Value::Bool(*b),
         JsonValue::Number(n) => Value::Number(Rational64::from_f64(n.as_f64().unwrap()).unwrap()),
         JsonValue::String(s) => Value::String(s.to_string()),
@@ -173,8 +197,18 @@ fn run(
 }
 
 fn mock_time(ctx: &mut RuntimeContext, issue: &JsonValue) {
-    ctx.set("GET_TODAY".to_string(), Value::Number(1677945600000.into()));
-    ctx.set("GET_NOW".to_string(), Value::Number(1677946815406.into()));
+    let now = SystemTime::now();
+    let now = now
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let today = now - (now % 86400000);
+
+    ctx.set(
+        "GET_TODAY".to_string(),
+        Value::Number((today as i64).into()),
+    );
+    ctx.set("GET_NOW".to_string(), Value::Number((now as i64).into()));
 
     ctx.set(
         "GET_UPDATE_TIME".to_string(),

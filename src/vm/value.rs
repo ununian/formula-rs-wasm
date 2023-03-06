@@ -19,11 +19,13 @@ pub enum Value {
     Array(Vec<Value>),
     Object(HashMap<String, Value>),
     Function(String),
+
+    Null,
 }
 
 impl Value {
-    pub fn add(self, _rhs: Value) -> Result<Value, ExecuteError> {
-        match (&self, &_rhs) {
+    pub fn add(self, rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &rhs) {
             (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a + b)),
             (Value::String(a), Value::String(b)) => Ok(Value::String(a.clone() + &b)),
 
@@ -41,13 +43,13 @@ impl Value {
             _ => Err(ExecuteError::operator_mismatch(
                 "+".to_string(),
                 self.to_string(),
-                Some(self.to_string()),
+                Some(rhs.to_string()),
             )),
         }
     }
 
-    pub fn sub(self, _rhs: Value) -> Result<Value, ExecuteError> {
-        match (&self, &_rhs) {
+    pub fn sub(self, rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &rhs) {
             (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a - b)),
 
             (Value::DateTime(a), Value::Duration(b)) => {
@@ -57,13 +59,13 @@ impl Value {
             _ => Err(ExecuteError::operator_mismatch(
                 "-".to_string(),
                 self.to_string(),
-                Some(self.to_string()),
+                Some(rhs.to_string()),
             )),
         }
     }
 
-    pub fn mul(self, _rhs: Value) -> Result<Value, ExecuteError> {
-        match (&self, &_rhs) {
+    pub fn mul(self, rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &rhs) {
             (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a * b)),
             (Value::Duration(a), Value::Number(b)) => Ok(Value::Duration(
                 (a.to_f64().unwrap() * b.to_f64().unwrap())
@@ -71,16 +73,21 @@ impl Value {
                     .to_i64()
                     .unwrap(),
             )),
-            _ => Err(ExecuteError::operator_mismatch(
+            (Value::Null, Value::Null) => Err(ExecuteError::operator_mismatch(
                 "*".to_string(),
                 self.to_string(),
                 Some(self.to_string()),
             )),
+            _ => Err(ExecuteError::operator_mismatch(
+                "*".to_string(),
+                self.to_string(),
+                Some(rhs.to_string()),
+            )),
         }
     }
 
-    pub fn div(self, _rhs: Value) -> Result<Value, ExecuteError> {
-        match (&self, &_rhs) {
+    pub fn div(self, rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &rhs) {
             (Value::Number(a), Value::Number(b)) => {
                 if b == &Rational64::zero() {
                     Err(ExecuteError::divide_by_zero())
@@ -105,7 +112,7 @@ impl Value {
             _ => Err(ExecuteError::operator_mismatch(
                 "/".to_string(),
                 self.to_string(),
-                Some(self.to_string()),
+                Some(rhs.to_string()),
             )),
         }
     }
@@ -135,8 +142,8 @@ impl Value {
         }
     }
 
-    pub fn pow(self, _rhs: Value) -> Result<Value, ExecuteError> {
-        match (&self, &_rhs) {
+    pub fn pow(self, rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &rhs) {
             (Value::Number(a), Value::Number(b)) => {
                 if !b.is_integer() {
                     return Err(ExecuteError::pow_not_rational());
@@ -149,18 +156,18 @@ impl Value {
             _ => Err(ExecuteError::operator_mismatch(
                 "Pow".to_string(),
                 self.to_string(),
-                Some(self.to_string()),
+                Some(rhs.to_string()),
             )),
         }
     }
 
-    pub fn modulo(self, _rhs: Value) -> Result<Value, ExecuteError> {
-        match (&self, &_rhs) {
+    pub fn modulo(self, rhs: Value) -> Result<Value, ExecuteError> {
+        match (&self, &rhs) {
             (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a % b)),
             _ => Err(ExecuteError::operator_mismatch(
                 "FormulaOperator::Modulo".to_string(),
                 self.to_string(),
-                Some(self.to_string()),
+                Some(rhs.to_string()),
             )),
         }
     }
@@ -173,7 +180,7 @@ impl Value {
                 _ => Err(ExecuteError::operator_mismatch(
                     op.clone(),
                     self.to_string(),
-                    Some(self.to_string()),
+                    Some(rhs.to_string()),
                 )),
             },
             (Value::Number(lhs), Value::Number(rhs)) => match op.as_str() {
@@ -181,18 +188,18 @@ impl Value {
                 ">=" => Ok(lhs.ge(&rhs)),
                 "<" => Ok(lhs.lt(&rhs)),
                 "<=" => Ok(lhs.le(&rhs)),
-                "==" => Ok(lhs.eq(&rhs)),
+                "=" | "==" => Ok(lhs.eq(&rhs)),
                 "!=" => Ok(lhs.ne(&rhs)),
                 _ => Err(ExecuteError::operator_mismatch(
                     op.clone(),
                     self.to_string(),
-                    Some(self.to_string()),
+                    Some(rhs.to_string()),
                 )),
             },
             _ => Err(ExecuteError::operator_mismatch(
                 op.clone(),
                 self.to_string(),
-                Some(self.to_string()),
+                Some(rhs.to_string()),
             )),
         }
     }
@@ -249,6 +256,7 @@ impl Value {
             Value::Duration(_) => "Duration",
             Value::Function(_) => "Function",
             Value::Object(_) => "Object",
+            Value::Null => "Null",
         }
     }
 }
@@ -281,6 +289,7 @@ impl Display for Value {
             Value::Duration(_) => write!(f, "{:?}", self),
             Value::Function(name) => write!(f, "Func {}()", name),
             Value::Object(_) => write!(f, "{:?}", self),
+            Value::Null => write!(f, "null"),
         }
     }
 }

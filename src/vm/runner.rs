@@ -22,11 +22,6 @@ impl Runner {
             operator.run(context)?;
         }
 
-        // heap.insert(
-        //     "abc".to_string(),
-        //     Value::Number(Rational64::from_f64(12.0).unwrap()),
-        // );
-
         match context.value_stack.len() {
             0 => return Err(ExecuteError::result_count_mismatch(0)),
             1 => Ok(context.value_stack.pop().unwrap()),
@@ -128,18 +123,18 @@ impl Runnable for OperatorCode {
                                     let val = obj.get(property);
                                     match val {
                                         Some(val) => result.push(val.clone()),
-                                        None => {
-                                            return Err(ExecuteError::dot_input_not_object_array())
-                                        }
+                                        None => result.push(Value::Null),
                                     }
                                 }
-                                _ => return Err(ExecuteError::dot_input_not_object_array()),
+                                _ => {
+                                    return Err(ExecuteError::dot_input_not_object_array(property))
+                                }
                             }
                         }
 
                         ctx.value_stack.push(Value::Array(result));
                     }
-                    _ => return Err(ExecuteError::dot_input_not_object_array()),
+                    _ => return Err(ExecuteError::dot_input_not_object_array(property)),
                 }
             }
             OperatorCode::FilterExpression(left, op, value) => {
@@ -169,16 +164,16 @@ impl Runnable for OperatorCode {
                                                 result.push(item.clone());
                                             }
                                         }
-                                        None => return Err(ExecuteError::dot_not_found_property()),
+                                        None => continue,
                                     }
                                 }
-                                _ => return Err(ExecuteError::dot_input_not_object_array()),
+                                _ => return Err(ExecuteError::dot_input_not_object_array(left)),
                             }
                         }
 
                         ctx.value_stack.push(Value::Array(result));
                     }
-                    _ => return Err(ExecuteError::dot_input_not_object_array()),
+                    _ => return Err(ExecuteError::dot_input_not_object_array(left)),
                 }
             }
         }

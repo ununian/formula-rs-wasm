@@ -43,12 +43,16 @@ mod formula_parse_ast {
         // let code = "5! * count(where(subtask,$.updateTime > now(aa.a + 2)))";
         // let code = "type NewType = { a: Number, b: Array<Number>, c: { d: { e: Bool } } };";
         // let code = "type a = Number;";
-        let code = "COUNT(relationship;relationship=CHILD)";
+        let code = "SUM(subtask.estimatePoint;status=4)/SUM(subtask.estimatePoint;)";
         let formula = Formula::parse(code).unwrap();
         // println!("{:#?}", formula);
         let (_, ast) = to_ast(formula.paris);
         // println!("{:#?}", ast);
         println!("{}", ast.beautify(0));
+
+        let operators = ast.to_operator();
+        println!("{:#?}", operators);
+
     }
 
     #[test]
@@ -549,5 +553,7 @@ mod formula_parse_ast {
                 OperatorCode::Call(1),
             ],
         );
+
+        
     }
 }

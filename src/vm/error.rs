@@ -118,12 +118,14 @@ impl ExecuteError {
         ))
     }
 
-    pub fn dot_input_not_object_array() -> Self {
+    pub fn dot_input_not_object_array(property: &String) -> Self {
         Self::new(ExecuteErrorType::DotInputNotAObjectArray)
+            .with_message(format!("when read property ({})", property))
     }
 
-    pub fn dot_not_found_property() -> Self {
+    pub fn dot_not_found_property(property: &String) -> Self {
         Self::new(ExecuteErrorType::DotNotFountProperty)
+            .with_message(format!("when read property ({})", property))
     }
 
     pub fn filter_argument_not_a_number() -> Self {
